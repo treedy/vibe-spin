@@ -5,7 +5,7 @@ import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
 
 export default function App() {
-  const { segments, updateWeight } = useSegments();
+  const { segments, updateWeight, updateLabel, updateColor } = useSegments();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -59,7 +59,12 @@ export default function App() {
       </header>
       <main>
         <div className="controls">
-          <SegmentTable segments={segments} onUpdateWeight={updateWeight} />
+          <SegmentTable 
+            segments={segments} 
+            onUpdateWeight={updateWeight}
+            onUpdateLabel={updateLabel}
+            onUpdateColor={updateColor}
+          />
         </div>
         <div className="wheel-container">
           <Wheel segments={segments} rotation={rotation} />

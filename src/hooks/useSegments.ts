@@ -25,5 +25,17 @@ export function useSegments() {
     setSegments(newSegments);
   };
 
-  return { segments, updateWeight, setSegments };
+  const updateLabel = (index: number, label: string) => {
+    const newSegments = [...segments];
+    newSegments[index].label = label;
+    setSegments(newSegments);
+  };
+
+  const updateColor = (index: number, color: string) => {
+    const newSegments = [...segments];
+    newSegments[index].color = color;
+    setSegments(newSegments);
+  };
+
+  return { segments, updateWeight, updateLabel, updateColor, setSegments };
 }
