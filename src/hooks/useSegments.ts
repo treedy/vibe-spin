@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 export interface Segment {
   id: string;
@@ -8,55 +8,79 @@ export interface Segment {
   color: string;
 }
 
+const DEFAULT_SEGMENTS: Segment[] = [
+  { id: '1', label: 'Option 1', weight: 1, percentage: 50, color: '#FF5733' },
+  { id: '2', label: 'Option 2', weight: 1, percentage: 50, color: '#33FF57' },
+];
+
 export function useSegments() {
-  const [segments, setSegments] = useState<Segment[]>([
-    { id: '1', label: 'Option 1', weight: 1, percentage: 50, color: '#FF5733' },
-    { id: '2', label: 'Option 2', weight: 1, percentage: 50, color: '#33FF57' },
-  ]);
+  const [segments, setSegments] = useState<Segment[]>(DEFAULT_SEGMENTS);
 
   const totalWeight = useMemo(() => segments.reduce((sum, s) => sum + s.weight, 0), [segments]);
 
-  const updateWeight = (index: number, weight: number) => {
-    const newSegments = [...segments];
-    newSegments[index].weight = weight;
-    // Recalculate all percentages
-    const newTotal = newSegments.reduce((sum, s) => sum + s.weight, 0);
-    newSegments.forEach(s => s.percentage = (s.weight / newTotal) * 100);
-    setSegments(newSegments);
-  };
+  const updateWeight = useCallback((index: number, weight: number) => {
+    setSegments(prev => {
+      const newSegments = [...prev];
+      newSegments[index] = { ...newSegments[index], weight };
+      
+      const newTotal = newSegments.reduce((sum, s) => sum + s.weight, 0);
+      return newSegments.map(s => ({
+        ...s,
+        percentage: (s.weight / newTotal) * 100
+      }));
+    });
+  }, []);
 
-  const updateLabel = (index: number, label: string) => {
-    const newSegments = [...segments];
-    newSegments[index].label = label;
-    setSegments(newSegments);
-  };
+  const updateLabel = useCallback((index: number, label: string) => {
+    setSegments(prev => {
+      const newSegments = [...prev];
+      newSegments[index] = { ...newSegments[index], label };
+      return newSegments;
+    });
+  }, []);
 
-  const updateColor = (index: number, color: string) => {
-    const newSegments = [...segments];
-    newSegments[index].color = color;
-    setSegments(newSegments);
-  };
+  const updateColor = useCallback((index: number, color: string) => {
+    setSegments(prev => {
+      const newSegments = [...prev];
+      newSegments[index] = { ...newSegments[index], color };
+      return newSegments;
+    });
+  }, []);
 
-  const addSegment = () => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newSegments = [
-      ...segments,
-      { id, label: `Option ${segments.length + 1}`, weight: 1, percentage: 0, color: '#6366f1' }
-    ];
-    // Recalculate percentages
-    const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
-    newSegments.forEach(s => s.percentage = (s.weight / total) * 100);
-    setSegments(newSegments);
-  };
+  const addSegment = useCallback(() => {
+    const id = Math.random().toString(36).substring(2, 11);
+    setSegments(prev => {
+      const newSegments = [
+        ...prev,
+        { id, label: `Option ${prev.length + 1}`, weight: 1, percentage: 0, color: '#6366f1' }
+      ];
+      const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
+      return newSegments.map(s => ({
+        ...s,
+        percentage: (s.weight / total) * 100
+      }));
+    });
+  }, []);
 
-  const removeSegment = (index: number) => {
-    if (segments.length <= 2) return; // Maintain at least 2 segments
-    const newSegments = segments.filter((_, i) => i !== index);
-    // Recalculate percentages
-    const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
-    newSegments.forEach(s => s.percentage = (s.weight / total) * 100);
-    setSegments(newSegments);
-  };
+  const removeSegment = useCallback((index: number) => {
+    setSegments(prev => {
+      if (prev.length <= 2) return prev;
+      const newSegments = prev.filter((_, i) => i !== index);
+      const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
+      return newSegments.map(s => ({
+        ...s,
+        percentage: (s.weight / total) * 100
+      }));
+    });
+  }, []);
 
-  return { segments, updateWeight, updateLabel, updateColor, addSegment, removeSegment, setSegments };
+  return { 
+    segments, 
+    updateWeight, 
+    updateLabel, 
+    updateColor, 
+    addSegment, 
+    removeSegment, 
+    setSegments 
+  };
 }
