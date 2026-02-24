@@ -5,10 +5,27 @@ import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
 
 export default function App() {
-  const { segments, updateWeight, updateLabel, updateColor } = useSegments();
+  const { segments, updateWeight, updateLabel, updateColor, addSegment, removeSegment, setSegments } = useSegments();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+
+  const presets = [
+    { name: 'Lunch', segments: [
+      { id: 'l1', label: 'Pizza', weight: 1, percentage: 33.3, color: '#FF5733' },
+      { id: 'l2', label: 'Sushi', weight: 1, percentage: 33.3, color: '#33FF57' },
+      { id: 'l3', label: 'Tacos', weight: 1, percentage: 33.3, color: '#3357FF' },
+    ]},
+    { name: 'Truth or Dare', segments: [
+      { id: 'td1', label: 'Truth', weight: 1, percentage: 50, color: '#f43f5e' },
+      { id: 'td2', label: 'Dare', weight: 1, percentage: 50, color: '#6366f1' },
+    ]},
+  ];
+
+  const loadPreset = (preset: typeof presets[0]) => {
+    setSegments(preset.segments);
+    setWinner(null);
+  };
 
   const spin = () => {
     if (isSpinning) return;
@@ -59,11 +76,20 @@ export default function App() {
       </header>
       <main>
         <div className="controls">
+          <div className="presets">
+            {presets.map(p => (
+              <button key={p.name} className="preset-btn" onClick={() => loadPreset(p)}>
+                {p.name}
+              </button>
+            ))}
+          </div>
           <SegmentTable 
             segments={segments} 
             onUpdateWeight={updateWeight}
             onUpdateLabel={updateLabel}
             onUpdateColor={updateColor}
+            onAddSegment={addSegment}
+            onRemoveSegment={removeSegment}
           />
         </div>
         <div className="wheel-container">

@@ -37,5 +37,26 @@ export function useSegments() {
     setSegments(newSegments);
   };
 
-  return { segments, updateWeight, updateLabel, updateColor, setSegments };
+  const addSegment = () => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const newSegments = [
+      ...segments,
+      { id, label: `Option ${segments.length + 1}`, weight: 1, percentage: 0, color: '#6366f1' }
+    ];
+    // Recalculate percentages
+    const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
+    newSegments.forEach(s => s.percentage = (s.weight / total) * 100);
+    setSegments(newSegments);
+  };
+
+  const removeSegment = (index: number) => {
+    if (segments.length <= 2) return; // Maintain at least 2 segments
+    const newSegments = segments.filter((_, i) => i !== index);
+    // Recalculate percentages
+    const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
+    newSegments.forEach(s => s.percentage = (s.weight / total) * 100);
+    setSegments(newSegments);
+  };
+
+  return { segments, updateWeight, updateLabel, updateColor, addSegment, removeSegment, setSegments };
 }

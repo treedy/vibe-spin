@@ -1,11 +1,14 @@
 import React from 'react';
 import type { Segment } from '../hooks/useSegments';
+import { Trash2, Plus } from 'lucide-react';
 
-export function SegmentTable({ segments, onUpdateWeight, onUpdateLabel, onUpdateColor }: { 
+export function SegmentTable({ segments, onUpdateWeight, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment }: { 
   segments: Segment[], 
   onUpdateWeight: (i: number, w: number) => void,
   onUpdateLabel: (i: number, l: string) => void,
-  onUpdateColor: (i: number, c: string) => void
+  onUpdateColor: (i: number, c: string) => void,
+  onAddSegment: () => void,
+  onRemoveSegment: (i: number) => void
 }) {
   return (
     <div className="table-container">
@@ -26,9 +29,18 @@ export function SegmentTable({ segments, onUpdateWeight, onUpdateLabel, onUpdate
             value={s.weight} 
             onChange={(e) => onUpdateWeight(i, Number(e.target.value))} 
           />
-          <span>{s.percentage.toFixed(1)}%</span>
+          <button 
+            className="remove-btn" 
+            onClick={() => onRemoveSegment(i)} 
+            disabled={segments.length <= 2}
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       ))}
+      <button className="add-btn" onClick={onAddSegment}>
+        <Plus size={16} /> Add Option
+      </button>
     </div>
   );
 }
