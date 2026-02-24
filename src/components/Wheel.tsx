@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Segment } from '../hooks/useSegments';
+import type { Segment } from '../hooks/useSegments';
 
 interface WheelProps {
   segments: Segment[];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Segment } from '../hooks/useSegments';
+import type { Segment } from '../hooks/useSegments';
 
 export function SegmentTable({ segments, onUpdateWeight }: { 
   segments: Segment[], 

@@ -1,10 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './styles.css';
 import { useSegments } from './hooks/useSegments';
 import { SegmentTable } from './components/SegmentTable';
+import { Wheel } from './components/Wheel';
 
 export default function App() {
   const { segments, updateWeight } = useSegments();
+  const [rotation, setRotation] = useState(0);
+  const [winner, setWinner] = useState<string | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
+
+  const spin = () => {
+    if (isSpinning) return;
+
+    setIsSpinning(true);
+    setWinner(null);
+
+    // Calculate total weight to pick a winner
+    const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
+    const randomWeight = Math.random() * totalWeight;
+    
+    let currentWeight = 0;
+    let winnerIndex = 0;
+    for (let i = 0; i < segments.length; i++) {
+      currentWeight += segments[i].weight;
+      if (randomWeight <= currentWeight) {
+        winnerIndex = i;
+        break;
+      }
+    }
+
+    // Determine the angle for the winner
+    // Winner center angle calculation
+    let winnerStartAngle = 0;
+    for (let i = 0; i < winnerIndex; i++) {
+      winnerStartAngle += (segments[i].percentage / 100) * 360;
+    }
+    const winnerAngle = (segments[winnerIndex].percentage / 100) * 360;
+    const centerWinnerAngle = winnerStartAngle + winnerAngle / 2;
+    
+    // Total spin: at least 5 rotations + offset to bring winner to top (270 degrees)
+    const extraSpins = 5 * 360;
+    const targetRotation = 270 - centerWinnerAngle;
+    const finalRotation = rotation + extraSpins + (targetRotation - (rotation % 360));
+
+    setRotation(finalRotation);
+
+    setTimeout(() => {
+      setWinner(segments[winnerIndex].label);
+      setIsSpinning(false);
+    }, 1500); // Rough duration to match animation
+  };
 
   return (
     <div className="app">
@@ -16,8 +62,15 @@ export default function App() {
           <SegmentTable segments={segments} onUpdateWeight={updateWeight} />
         </div>
         <div className="wheel-container">
-          {/* Wheel will be added in Task 4 */}
-          <div className="wheel-placeholder">Wheel Placeholder</div>
+          <Wheel segments={segments} rotation={rotation} />
+          <button className="spin-button" onClick={spin} disabled={isSpinning}>
+            Spin
+          </button>
+          {winner && (
+            <div className="winner-overlay">
+              Result: {winner}
+            </div>
+          )}
         </div>
       </main>
     </div>
