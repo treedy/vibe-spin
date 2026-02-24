@@ -17,14 +17,15 @@ const PRESETS = [
 ];
 
 export default function App() {
-  const { 
-    segments, 
-    updateWeight, 
-    updateLabel, 
-    updateColor, 
-    addSegment, 
-    removeSegment, 
-    setSegments 
+  const {
+    segments,
+    updateWeight,
+    updatePercentage,
+    updateLabel,
+    updateColor,
+    addSegment,
+    removeSegment,
+    setSegments
   } = useSegments();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export default function App() {
     // Calculate total weight to pick a winner
     const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
     const randomWeight = Math.random() * totalWeight;
-    
+
     let currentWeight = 0;
     let winnerIndex = 0;
     for (let i = 0; i < segments.length; i++) {
@@ -65,7 +66,7 @@ export default function App() {
     }
     const winnerAngle = (segments[winnerIndex].percentage / 100) * 360;
     const centerWinnerAngle = winnerStartAngle + winnerAngle / 2;
-    
+
     const extraSpins = 5 * 360;
     const targetRotation = 270 - centerWinnerAngle;
     const finalRotation = rotation + extraSpins + (targetRotation - (rotation % 360));
@@ -75,7 +76,7 @@ export default function App() {
     setTimeout(() => {
       setWinner(segments[winnerIndex].label);
       setIsSpinning(false);
-    }, 1500); 
+    }, 1500);
   }, [isSpinning, rotation, segments]);
 
   return (
@@ -92,9 +93,10 @@ export default function App() {
               </button>
             ))}
           </div>
-          <SegmentTable 
-            segments={segments} 
+          <SegmentTable
+            segments={segments}
             onUpdateWeight={updateWeight}
+            onUpdatePercentage={updatePercentage}
             onUpdateLabel={updateLabel}
             onUpdateColor={updateColor}
             onAddSegment={addSegment}
@@ -103,9 +105,9 @@ export default function App() {
         </div>
         <div className="wheel-container">
           <Wheel segments={segments} rotation={rotation} />
-          <button 
-            className="spin-button" 
-            onClick={spin} 
+          <button
+            className="spin-button"
+            onClick={spin}
             disabled={isSpinning || isPending}
           >
             {isSpinning ? 'Spinning...' : 'Spin'}

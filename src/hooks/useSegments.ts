@@ -22,7 +22,7 @@ export function useSegments() {
     setSegments(prev => {
       const newSegments = [...prev];
       newSegments[index] = { ...newSegments[index], weight };
-      
+
       const newTotal = newSegments.reduce((sum, s) => sum + s.weight, 0);
       return newSegments.map(s => ({
         ...s,
@@ -62,6 +62,23 @@ export function useSegments() {
     });
   }, []);
 
+  const updatePercentage = useCallback((index: number, percentage: number) => {
+    // Clamp to (0, 100) exclusive to avoid division by zero and zero weights
+    const p = Math.min(Math.max(percentage, 0.01), 99.99);
+    setSegments(prev => {
+      const othersWeight = prev.reduce((sum, s, i) => i !== index ? sum + s.weight : sum, 0);
+      // w_i = p * W_others / (100 - p)
+      const newWeight = (p * othersWeight) / (100 - p);
+      const newSegments = [...prev];
+      newSegments[index] = { ...newSegments[index], weight: newWeight };
+      const newTotal = newSegments.reduce((sum, s) => sum + s.weight, 0);
+      return newSegments.map(s => ({
+        ...s,
+        percentage: (s.weight / newTotal) * 100
+      }));
+    });
+  }, []);
+
   const removeSegment = useCallback((index: number) => {
     setSegments(prev => {
       if (prev.length <= 2) return prev;
@@ -74,13 +91,14 @@ export function useSegments() {
     });
   }, []);
 
-  return { 
-    segments, 
-    updateWeight, 
-    updateLabel, 
-    updateColor, 
-    addSegment, 
-    removeSegment, 
-    setSegments 
+  return {
+    segments,
+    updateWeight,
+    updatePercentage,
+    updateLabel,
+    updateColor,
+    addSegment,
+    removeSegment,
+    setSegments
   };
 }
