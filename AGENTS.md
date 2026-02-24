@@ -50,3 +50,4 @@ The application follows a single-source-of-truth pattern:
 - **Types:** Ensure strict TypeScript typing for all components and hooks.
 - **Testing:** Always add or update tests in `src/hooks/*.test.ts` or `src/components/*.test.tsx` when modifying logic.
 - **Documentation:** Maintain the plans in `docs/plans/` if significant architectural changes are made.
+- **React Code:** When adding or changing React code, the `vercel-react-best-practices` Skill must be used.
