@@ -51,3 +51,38 @@ The application follows a single-source-of-truth pattern:
 - **Testing:** Always add or update tests in `src/hooks/*.test.ts` or `src/components/*.test.tsx` when modifying logic.
 - **Documentation:** Maintain the plans in `docs/plans/` if significant architectural changes are made.
 - **React Code:** When adding or changing React code, the `vercel-react-best-practices` Skill must be used.
+
+## 8. Frontend Design
+- **Always invoke the `frontend-design` skill** before writing any frontend code. No exceptions.
+
+### Reference Images
+- If a reference image is provided: match layout, spacing, typography, and color exactly. Swap in placeholder content (images via `https://placehold.co/`, generic copy). Do not improve or add to the design.
+- If no reference image: design from scratch with high craft (see guardrails below).
+- Screenshot your output, compare against reference, fix mismatches, re-screenshot. Do at least 2 comparison rounds. Stop only when no visible differences remain or user says so.
+
+### Local Server
+- **Always serve on localhost** — never screenshot a `file:///` URL.
+- Start the dev server if needed. It serves at `http://localhost:5173/`
+- If the server is already running, do not start a second instance.
+
+### Screenshot Workflow
+- **Always screenshot from localhost:** Use the `playwright-cli` skill to take screenshots and save them in the `temp_screenshots` directory.
+- After screenshotting, read the PNG from `temp_screenshots/` with the Read tool.
+- When comparing, be specific: "heading is 32px but reference shows ~24px", "card gap is 16px but should be 24px"
+- Check: spacing/padding, font size/weight/line-height, colors (exact hex), alignment, border-radius, shadows, image sizing
+
+### Output Defaults
+- Placeholder images: `https://placehold.co/WIDTHxHEIGHT`
+- Mobile-first responsive
+
+### Brand Assets
+- Always check the `brand_assets/` folder before designing. It may contain logos, color guides, style guides, or images.
+- If assets exist there, use them. Do not use placeholders where real assets are available.
+- If a logo is present, use it. If a color palette is defined, use those exact values — do not invent brand colors.
+
+### Hard Rules
+- Do not add sections, features, or content not in the reference
+- Do not "improve" a reference design — match it
+- Do not stop after one screenshot pass
+- Do not use `transition-all`
+- Do not use default Tailwind blue/indigo as primary color

@@ -9,8 +9,10 @@ export interface Segment {
 }
 
 const DEFAULT_SEGMENTS: Segment[] = [
-  { id: '1', label: 'Option 1', weight: 1, percentage: 50, color: '#FF5733' },
-  { id: '2', label: 'Option 2', weight: 1, percentage: 50, color: '#33FF57' },
+  { id: '1', label: 'Deep Ocean', weight: 10, percentage: 25, color: '#1a5fb4' },
+  { id: '2', label: 'Electric Sky', weight: 10, percentage: 25, color: '#3584e4' },
+  { id: '3', label: 'Neon Cobalt', weight: 10, percentage: 25, color: '#62a0ea' },
+  { id: '4', label: 'Cyan Flash', weight: 10, percentage: 25, color: '#00f2ff' },
 ];
 
 export function useSegments() {

@@ -149,3 +149,7 @@ vite.config.ts.timestamp-*
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+/.playwright-cli
+
+# Project specific
+temp_screenshots/

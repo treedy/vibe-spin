@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import type { Segment } from '../hooks/useSegments';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Palette } from 'lucide-react';
 
 interface SegmentRowProps {
   segment: Segment;
@@ -23,9 +23,6 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
   onRemoveSegment,
   canRemove
 }) => {
-  // rerender-use-ref-transient-values + rerender-functional-setstate:
-  // Keep state for controlled display; mirror to ref so commitPercentage
-  // reads the always-current value without capturing stale state in its closure.
   const [inputPct, setInputPct] = useState<string | null>(null);
   const inputPctRef = useRef<string | null>(null);
 
@@ -34,7 +31,6 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
     setInputPct(v);
   };
 
-  // Stable callback — reads ref, not state, so deps are [index, onUpdatePercentage]
   const commitPercentage = useCallback(() => {
     const draft = inputPctRef.current;
     if (draft !== null) {
@@ -49,19 +45,23 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
   return (
     <div className="row">
       <input
-        type="color"
-        value={segment.color}
-        onChange={(e) => onUpdateColor(index, e.target.value)}
-      />
-      <input
         type="text"
+        className="label-input"
         value={segment.label}
         onChange={(e) => onUpdateLabel(index, e.target.value)}
       />
       <input
+        type="color"
+        className="color-swatch"
+        value={segment.color}
+        onChange={(e) => onUpdateColor(index, e.target.value)}
+      />
+      <input
         type="number"
+        className="weight-input"
         value={segment.weight}
         onChange={(e) => onUpdateWeight(index, Number(e.target.value))}
+        min="1"
       />
       <input
         type="number"
@@ -88,6 +88,11 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
 
 SegmentRow.displayName = 'SegmentRow';
 
+interface Preset {
+  name: string;
+  segments: Segment[];
+}
+
 export const SegmentTable: React.FC<{
   segments: Segment[],
   onUpdateWeight: (i: number, w: number) => void,
@@ -95,19 +100,37 @@ export const SegmentTable: React.FC<{
   onUpdateLabel: (i: number, l: string) => void,
   onUpdateColor: (i: number, c: string) => void,
   onAddSegment: () => void,
-  onRemoveSegment: (i: number) => void
-}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment }) => {
+  onRemoveSegment: (i: number) => void,
+  presets?: Preset[],
+  onLoadPreset?: (segments: Segment[]) => void
+}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, presets, onLoadPreset }) => {
   const canRemove = segments.length > 2;
 
   return (
     <div className="table-container">
-      <div className="row header">
-        <div className="col color-col">Color</div>
-        <div className="col label-col">Label</div>
-        <div className="col weight-col">Weight</div>
-        <div className="col pct-col">%</div>
-        <div className="col action-col">Remove Segment</div>
+      {/* Preset Row */}
+      <div className="preset-row">
+        {presets?.map(p => (
+          <button key={p.name} className="preset-btn" onClick={() => onLoadPreset?.(p.segments)}>
+            {p.name}
+            <Palette size={14} />
+          </button>
+        ))}
+        <button className="add-btn" onClick={onAddSegment}>
+          <Plus size={18} />
+        </button>
       </div>
+
+      {/* Header */}
+      <div className="row header">
+        <div className="col">Segment</div>
+        <div className="col">Color</div>
+        <div className="col">Weight</div>
+        <div className="col">%</div>
+        <div className="col">Action</div>
+      </div>
+
+      {/* Rows */}
       {segments.map((s, i) => (
         <SegmentRow
           key={s.id}
@@ -121,9 +144,6 @@ export const SegmentTable: React.FC<{
           canRemove={canRemove}
         />
       ))}
-      <button className="add-btn" onClick={onAddSegment}>
-        <Plus size={16} /> Add Option
-      </button>
     </div>
   );
 };
