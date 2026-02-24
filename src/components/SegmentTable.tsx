@@ -101,6 +101,13 @@ export const SegmentTable: React.FC<{
 
   return (
     <div className="table-container">
+      <div className="row header">
+        <div className="col color-col">Color</div>
+        <div className="col label-col">Label</div>
+        <div className="col weight-col">Weight</div>
+        <div className="col pct-col">%</div>
+        <div className="col action-col">Remove Segment</div>
+      </div>
       {segments.map((s, i) => (
         <SegmentRow
           key={s.id}

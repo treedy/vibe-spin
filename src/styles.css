@@ -66,6 +66,28 @@ main {
   border-bottom: 1px solid #e2e8f0;
 }
 
+/* Header row for segment table */
+.row.header {
+  background: #f8fafc;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
+}
+
+.row.header .col {
+  display: flex;
+  align-items: center;
+}
+
+.color-col { justify-content: center; }
+.label-col { padding-left: 0.25rem; }
+.weight-col, .pct-col { justify-content: center; }
+.action-col { justify-content: center; }
+
 .remove-btn {
   background: none;
   border: none;
