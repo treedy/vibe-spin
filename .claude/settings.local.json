@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx jest --runInBand)",
+      "Bash(npm install @testing-library/react-hooks --save-dev)",
+      "Bash(npm install @testing-library/react-hooks --save-dev --legacy-peer-deps)",
+      "Bash(npm install @babel/core --save-dev)"
+    ]
+  }
+}
