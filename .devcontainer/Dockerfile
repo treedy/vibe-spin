@@ -9,9 +9,10 @@ RUN sudo npm install -g @playwright/cli \
 	&& sudo npm cache clean --force > /dev/null 2>&1 \
 	&& npm cache clean --force > /dev/null 2>&1
 
-# Install agent CLIs. Copilot is already semi-installed in the base image.
+# Install agent CLIs.
 # Add Codex when it's available for Linux
 RUN sudo npm install -g @google/gemini-cli \
+	&& sudo npm install -g @github/copilot \
 	&& curl -fsSL https://claude.ai/install.sh | bash \
 	&& sudo npm cache clean --force > /dev/null 2>&1
 
@@ -24,7 +25,9 @@ RUN sudo mkdir -p -m 755 /etc/apt/keyrings \
 	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
 	&& sudo apt update \
   && sudo apt install -y \
+		bat \
 		fzf \
 		gh \
 		ripgrep \
+		stow \
 	&& sudo rm -rf /var/lib/apt/lists/*
