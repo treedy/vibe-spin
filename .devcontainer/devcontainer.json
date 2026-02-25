@@ -25,7 +25,7 @@
 	// Additional mounts
 	// https://code.visualstudio.com/remote/advancedcontainers/add-local-file-mount
 	"mounts": [
-    // "source=${localEnv:HOME}${localEnv:USERPROFILE},target=/host-home-folder,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached"
+		// Link important files (.zshrc) and directories (.ssh, .claude, .copilot, etc) from this folder
+    "source=${localEnv:HOME}${localEnv:USERPROFILE},target=/host-home-folder,type=bind,consistency=cached"
 	]
 }
