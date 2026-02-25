@@ -1,16 +1,19 @@
 FROM mcr.microsoft.com/devcontainers/typescript-node:24-trixie
 
+USER node
+
 # Playwright + browsers is large, so we want this up higher in the layers.
 # Separating it out to take advantage of layer caching.
-RUN npm install -g @playwright/cli \
-	&& npx playwright install --with-deps \
+RUN sudo npm install -g @playwright/cli \
+	&& npx playwright install --with-deps chromium firefox webkit \
+	&& sudo npm cache clean --force > /dev/null 2>&1 \
 	&& npm cache clean --force > /dev/null 2>&1
 
 # Install agent CLIs. Copilot is already semi-installed in the base image.
 # Add Codex when it's available for Linux
-RUN npm install -g @google/gemini-cli \
-	&& sudo -u node zsh -c 'curl -fsSL https://claude.ai/install.sh | bash' \
-	&& npm cache clean --force > /dev/null 2>&1
+RUN sudo npm install -g @google/gemini-cli \
+	&& curl -fsSL https://claude.ai/install.sh | bash \
+	&& sudo npm cache clean --force > /dev/null 2>&1
 
 # Install other useful tools like ripgrep, fzf, and github-cli
 RUN sudo mkdir -p -m 755 /etc/apt/keyrings \
@@ -19,10 +22,9 @@ RUN sudo mkdir -p -m 755 /etc/apt/keyrings \
 	&& sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
 	&& sudo mkdir -p -m 755 /etc/apt/sources.list.d \
 	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-	&& apt update \
-  && apt install -y \
+	&& sudo apt update \
+  && sudo apt install -y \
 		fzf \
 		gh \
 		ripgrep \
-	&& rm -rf /var/lib/apt/lists/* \
-	&& npm cache clean --force > /dev/null 2>&1
+	&& sudo rm -rf /var/lib/apt/lists/*
