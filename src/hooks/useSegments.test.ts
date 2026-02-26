@@ -8,8 +8,8 @@ describe('useSegments', () => {
     act(() => {
       result.current.updateWeight(0, 2); // Change first segment weight to 2
     });
-    // Total weight 2+1=3. First segment should be 66.6%
-    expect(result.current.segments[0].percentage).toBeCloseTo(66.66, 1);
+    // Total weight 2+10+10+10=32. First segment should be 6.25%
+    expect(result.current.segments[0].percentage).toBeCloseTo(6.25, 2);
   });
 
   describe('updatePercentage', () => {
@@ -19,7 +19,9 @@ describe('useSegments', () => {
         result.current.updatePercentage(0, 25);
       });
       expect(result.current.segments[0].percentage).toBeCloseTo(25, 1);
-      expect(result.current.segments[1].percentage).toBeCloseTo(75, 1);
+      // With four equal-weight segments, the remaining 75% is split
+      // evenly across the other three segments => 25% each.
+      expect(result.current.segments[1].percentage).toBeCloseTo(25, 1);
     });
 
     it('all percentages still sum to 100 after update', () => {

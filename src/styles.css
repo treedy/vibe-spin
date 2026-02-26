@@ -140,21 +140,6 @@ body {
   gap: 0.5rem;
 }
 
-.live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(37, 123, 244, 0.15);
-  color: var(--primary);
-  padding: 0.35rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  width: fit-content;
-}
-
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
