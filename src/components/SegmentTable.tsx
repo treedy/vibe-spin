@@ -109,17 +109,16 @@ export const SegmentTable: React.FC<{
   return (
     <div className="table-container">
       {/* Preset Row */}
-      <div className="preset-row">
-        {presets?.map(p => (
-          <button key={p.name} className="preset-btn" onClick={() => onLoadPreset?.(p.segments)}>
-            {p.name}
-            <Palette size={14} />
-          </button>
-        ))}
-        <button className="add-btn" onClick={onAddSegment}>
-          <Plus size={18} />
-        </button>
-      </div>
+      {presets && presets.length > 0 && (
+        <div className="preset-row">
+          {presets.map(p => (
+            <button key={p.name} className="preset-btn" onClick={() => onLoadPreset?.(p.segments)}>
+              {p.name}
+              <Palette size={14} />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Header */}
       <div className="row header">
@@ -144,6 +143,12 @@ export const SegmentTable: React.FC<{
           canRemove={canRemove}
         />
       ))}
+
+      {/* Add Segment Button */}
+      <button className="add-segment-row" onClick={onAddSegment}>
+        <Plus size={16} />
+        {segments.length === 0 ? 'Add your first segment' : 'Add segment'}
+      </button>
     </div>
   );
 };
