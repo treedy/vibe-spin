@@ -10,7 +10,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test:unit": "vitest --run",
+    "test:e2e": "playwright test",
+    "test": "node scripts/run-tests.js",
+    "test:e2e-first": "TEST_ORDER=e2e-first node scripts/run-tests.js"
   },
   "keywords": [],
   "author": "",
