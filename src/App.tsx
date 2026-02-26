@@ -1,9 +1,12 @@
 import React, { useState, useCallback, useTransition } from 'react';
 import './styles.css';
 import { useSegments, type Segment } from './hooks/useSegments';
+import { useSpinHistory } from './hooks/useSpinHistory';
 import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
-import { Share2, Settings, User, Utensils, Film, Lightbulb, Rocket } from 'lucide-react';
+import { HistoryDrawer } from './components/HistoryDrawer';
+import { formatRelativeTime } from './utils/timeFormat';
+import { Share2, Settings, User } from 'lucide-react';
 
 const PRESETS = [
   { name: 'Lunch', segments: [
@@ -23,12 +26,8 @@ const PRESETS = [
   ]},
 ];
 
-const RECENT_SESSIONS = [
-  { id: 1, name: 'Dinner Dash', time: '15 mins ago', icon: Utensils },
-  { id: 2, name: 'Movie Night', time: '2 hours ago', icon: Film },
-  { id: 3, name: 'Idea Storm', time: 'Yesterday', icon: Lightbulb },
-  { id: 4, name: 'Daily Kickoff', time: 'Oct 26', icon: Rocket },
-];
+const WHEEL_NAME = 'Decision Wheel';
+
 
 export default function App() {
   const {
@@ -41,12 +40,16 @@ export default function App() {
     removeSegment,
     setSegments
   } = useSegments();
+  const { history, addEntry, clearHistory } = useSpinHistory();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [celebrationEnabled, setCelebrationEnabled] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const recentSessions = history.slice(0, 4);
 
   const loadPreset = useCallback((presetSegments: Segment[]) => {
     startTransition(() => {
@@ -87,11 +90,13 @@ export default function App() {
 
     setRotation(finalRotation);
 
+    const winningSegment = segments[winnerIndex];
     setTimeout(() => {
-      setWinner(segments[winnerIndex].label);
+      setWinner(winningSegment.label);
       setIsSpinning(false);
+      addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName: WHEEL_NAME });
     }, 1500);
-  }, [isSpinning, rotation, segments]);
+  }, [isSpinning, rotation, segments, addEntry]);
 
   const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
 
@@ -221,22 +226,33 @@ export default function App() {
       <section className="recent-section">
         <div className="recent-header">
           <h3 className="recent-title">Recent Sessions</h3>
-          <a href="#" className="view-history-link">View Full History</a>
+          <button className="view-history-link" onClick={() => setHistoryOpen(true)}>View Full History</button>
         </div>
         <div className="recent-grid">
-          {RECENT_SESSIONS.map(session => (
-            <div key={session.id} className="session-card">
-              <div className="session-icon">
-                <session.icon size={18} />
+          {recentSessions.length === 0 ? (
+            <p className="recent-empty">Spin the wheel to start tracking history.</p>
+          ) : (
+            recentSessions.map(entry => (
+              <div key={entry.id} className="session-card">
+                <div className="session-icon session-icon--color" style={{ background: entry.color + '26' }}>
+                  <div className="session-color-dot" style={{ background: entry.color }} />
+                </div>
+                <div className="session-info">
+                  <span className="session-name">{entry.label}</span>
+                  <span className="session-time">{formatRelativeTime(entry.ts)}</span>
+                </div>
               </div>
-              <div className="session-info">
-                <span className="session-name">{session.name}</span>
-                <span className="session-time">{session.time}</span>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
+
+      <HistoryDrawer
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        history={history}
+        onClearHistory={clearHistory}
+      />
 
       {/* Footer */}
       <footer className="app-footer">
