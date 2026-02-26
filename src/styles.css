@@ -504,6 +504,41 @@ main {
   cursor: not-allowed;
 }
 
+/* Add Segment Row Button */
+.add-segment-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.9rem;
+  margin-top: 0.5rem;
+  background: linear-gradient(90deg, rgba(37,123,244,0.10), rgba(0,242,255,0.04));
+  border: 1px solid rgba(37, 123, 244, 0.25);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s, background 0.12s;
+  box-shadow: 0 6px 18px rgba(37,123,244,0.06);
+}
+
+.add-segment-row:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  background: linear-gradient(90deg, rgba(37,123,244,0.18), rgba(0,242,255,0.08));
+  box-shadow: 0 10px 30px rgba(37,123,244,0.14);
+  color: var(--text-primary);
+}
+
+.add-segment-row:active {
+  transform: translateY(0);
+}
+
 /* Table Footer */
 .table-footer {
   display: flex;
