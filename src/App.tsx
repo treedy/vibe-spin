@@ -124,7 +124,6 @@ export default function App() {
       {/* Page Header */}
       <div className="page-header">
         <div className="page-header-left">
-          <div className="live-badge">Live Studio</div>
           <h1 className="page-title">DECISION <span>STUDIO</span></h1>
           <p className="page-subtitle">Configure your game-show wheel with custom weightings and neon styles.</p>
         </div>
