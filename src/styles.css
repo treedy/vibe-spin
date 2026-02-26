@@ -504,6 +504,34 @@ main {
   cursor: not-allowed;
 }
 
+/* Add Segment Row Button */
+.add-segment-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background: transparent;
+  border: 1px dashed rgba(37, 123, 244, 0.35);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.add-segment-row:hover {
+  border-color: var(--primary);
+  color: var(--text-primary);
+  background: rgba(37, 123, 244, 0.06);
+}
+
 /* Table Footer */
 .table-footer {
   display: flex;
