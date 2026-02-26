@@ -153,3 +153,12 @@ vite.config.ts.timestamp-*
 
 # Project specific
 temp_screenshots/
+
+# Compiled TypeScript output (JS + declaration files alongside source)
+**/*.js.map
+**/*.d.ts
+**/*.d.ts.map
+src/**/*.js
+tests/**/*.js
+playwright.config.js
+vite.config.js
