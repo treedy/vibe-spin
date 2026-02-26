@@ -23,7 +23,9 @@ export function useSegments() {
   const updateWeight = useCallback((index: number, weight: number) => {
     setSegments(prev => {
       const newSegments = [...prev];
-      newSegments[index] = { ...newSegments[index], weight };
+      const current = newSegments[index];
+      if (!current) return prev;
+      newSegments[index] = { ...current, weight };
 
       const newTotal = newSegments.reduce((sum, s) => sum + s.weight, 0);
       return newSegments.map(s => ({
@@ -36,7 +38,9 @@ export function useSegments() {
   const updateLabel = useCallback((index: number, label: string) => {
     setSegments(prev => {
       const newSegments = [...prev];
-      newSegments[index] = { ...newSegments[index], label };
+      const current = newSegments[index];
+      if (!current) return prev;
+      newSegments[index] = { ...current, label };
       return newSegments;
     });
   }, []);
@@ -44,7 +48,9 @@ export function useSegments() {
   const updateColor = useCallback((index: number, color: string) => {
     setSegments(prev => {
       const newSegments = [...prev];
-      newSegments[index] = { ...newSegments[index], color };
+      const current = newSegments[index];
+      if (!current) return prev;
+      newSegments[index] = { ...current, color };
       return newSegments;
     });
   }, []);
@@ -72,7 +78,9 @@ export function useSegments() {
       // w_i = p * W_others / (100 - p)
       const newWeight = (p * othersWeight) / (100 - p);
       const newSegments = [...prev];
-      newSegments[index] = { ...newSegments[index], weight: newWeight };
+      const current = newSegments[index];
+      if (!current) return prev;
+      newSegments[index] = { ...current, weight: newWeight };
       const newTotal = newSegments.reduce((sum, s) => sum + s.weight, 0);
       return newSegments.map(s => ({
         ...s,
