@@ -67,7 +67,7 @@ export default function App() {
     let currentWeight = 0;
     let winnerIndex = 0;
     for (let i = 0; i < segments.length; i++) {
-      currentWeight += segments[i].weight;
+      currentWeight += segments[i]!.weight;
       if (randomWeight <= currentWeight) {
         winnerIndex = i;
         break;
@@ -76,9 +76,9 @@ export default function App() {
 
     let winnerStartAngle = 0;
     for (let i = 0; i < winnerIndex; i++) {
-      winnerStartAngle += (segments[i].percentage / 100) * 360;
+      winnerStartAngle += (segments[i]!.percentage / 100) * 360;
     }
-    const winnerAngle = (segments[winnerIndex].percentage / 100) * 360;
+    const winnerAngle = (segments[winnerIndex]!.percentage / 100) * 360;
     const margin = winnerAngle * 0.1;
     const randomOffset = margin + Math.random() * (winnerAngle - margin * 2);
     const targetAngle = winnerStartAngle + randomOffset;
@@ -90,7 +90,7 @@ export default function App() {
     setRotation(finalRotation);
 
     setTimeout(() => {
-      setWinner(segments[winnerIndex].label);
+      setWinner(segments[winnerIndex]!.label);
       setIsSpinning(false);
     }, 1500);
   }, [isSpinning, rotation, segments]);
