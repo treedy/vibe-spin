@@ -79,10 +79,12 @@ export default function App() {
       winnerStartAngle += (segments[i].percentage / 100) * 360;
     }
     const winnerAngle = (segments[winnerIndex].percentage / 100) * 360;
-    const centerWinnerAngle = winnerStartAngle + winnerAngle / 2;
+    const margin = winnerAngle * 0.1;
+    const randomOffset = margin + Math.random() * (winnerAngle - margin * 2);
+    const targetAngle = winnerStartAngle + randomOffset;
 
     const extraSpins = 5 * 360;
-    const targetRotation = 270 - centerWinnerAngle;
+    const targetRotation = 270 - targetAngle;
     const finalRotation = rotation + extraSpins + (targetRotation - (rotation % 360));
 
     setRotation(finalRotation);
