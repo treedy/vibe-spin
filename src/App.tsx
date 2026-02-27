@@ -8,6 +8,7 @@ import { Wheel } from './components/Wheel';
 import { HistoryDrawer } from './components/HistoryDrawer';
 import { WheelsDrawer } from './components/WheelsDrawer';
 import { TemplatesModal } from './components/TemplatesModal';
+import { TermsModal } from './components/TermsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
 
@@ -58,6 +59,7 @@ export default function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
@@ -362,12 +364,14 @@ export default function App() {
         </div>
       )}
 
+      <TermsModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} />
+
       {/* Footer */}
       <footer className="app-footer">
         <span>© 2026 Tawdball Tech. Gamified Choices.</span>
         <div className="footer-links">
           <a href="#">Privacy</a>
-          <a href="#">Terms</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); setTermsOpen(true); }}>Terms</a>
           <a href="#">Feedback</a>
         </div>
       </footer>
