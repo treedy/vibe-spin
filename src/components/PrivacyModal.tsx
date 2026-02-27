@@ -32,7 +32,10 @@ export function PrivacyModal({ isOpen, onClose, triggerRef }: PrivacyModalProps)
           <li><strong>Storage:</strong> wheel state is saved in your browser&apos;s localStorage only.</li>
           <li><strong>Cookies:</strong> none.</li>
           <li><strong>Third-party services:</strong> none.</li>
-          <li><strong>Contact:</strong> open an issue on GitHub or email privacy@example.com.</li>
+          <li>
+            <strong>Contact:</strong>{' '}
+            <a href="https://github.com/treedy/vibe-spin/issues">open an issue on GitHub</a>.
+          </li>
         </ul>
       </div>
       <div className="privacy-modal-actions">
