@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useTransition } from 'react';
+import React, { useState, useCallback, useTransition, useEffect } from 'react';
 import './styles.css';
 import { useSegments, type Segment } from './hooks/useSegments';
 import { useSpinHistory } from './hooks/useSpinHistory';
@@ -121,6 +121,19 @@ export default function App() {
       setIsSpinning(false);
     }, 1500);
   }, [isSpinning, rotation, segments, addEntry]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (['INPUT', 'TEXTAREA', 'BUTTON'].includes(tag) || (e.target as HTMLElement).isContentEditable) return;
+      if (isSpinning || isPending) return;
+      e.preventDefault();
+      spin();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [spin, isSpinning, isPending]);
 
   const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
 
