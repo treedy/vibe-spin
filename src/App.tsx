@@ -70,7 +70,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, [capReached]);
 
-  const recentSessions = history.slice(0, 4);
+  const recentSpins = history.slice(0, 4);
 
   const loadPreset = useCallback((presetSegments: Segment[]) => {
     startTransition(() => {
@@ -167,12 +167,11 @@ export default function App() {
               <path d="M12 6v6l4 2" />
             </svg>
           </div>
-          <div className="logo-text">DECISION<span>WHEEL</span></div>
+          <div className="logo-text">VIBE<span>SPIN</span></div>
         </div>
         <div className="nav-links">
           <a href="#" onClick={(e) => { e.preventDefault(); setWheelsOpen(true); }}>My Wheels</a>
           <a href="#" onClick={(e) => { e.preventDefault(); setTemplatesOpen(true); }}>Templates</a>
-          <a href="#">History</a>
         </div>
         <div className="nav-actions">
           <button className="new-wheel-btn" onClick={createWheel}>New Wheel</button>
@@ -184,11 +183,7 @@ export default function App() {
 
       {/* Page Header */}
       <div className="page-header">
-        <div className="page-header-left">
-          <h1 className="page-title">DECISION <span>STUDIO</span></h1>
-          <p className="page-subtitle">Configure your game-show wheel with custom weightings and neon styles.</p>
-        </div>
-        <div className="header-actions">
+        <div className="header-actions page-header-right">
           <button className="header-btn">
             <Share2 size={16} />
             Share
@@ -266,7 +261,7 @@ export default function App() {
               )}
               <h2 className="segments-title">Segments</h2>
             </div>
-            <p className="segments-subtitle">Manage labels, colors and winning weights</p>
+            <p className="segments-subtitle">Manage labels, colors and weights</p>
           </div>
 
           <SegmentTable
@@ -312,17 +307,17 @@ export default function App() {
         </div>
       </main>
 
-      {/* Recent Sessions */}
+      {/* Recent Spins */}
       <section className="recent-section">
         <div className="recent-header">
-          <h3 className="recent-title">Recent Sessions</h3>
+          <h3 className="recent-title">Recent Spins</h3>
           <button className="view-history-link" onClick={() => setHistoryOpen(true)}>View Full History</button>
         </div>
         <div className="recent-grid">
-          {recentSessions.length === 0 ? (
+          {recentSpins.length === 0 ? (
             <p className="recent-empty">Spin the wheel to start tracking history.</p>
           ) : (
-            recentSessions.map(entry => (
+            recentSpins.map(entry => (
               <div key={entry.id} className="session-card">
                 <div className="session-icon session-icon--color" style={{ background: entry.color + '26' }}>
                   <div className="session-color-dot" style={{ background: entry.color }} />
@@ -369,7 +364,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <span>© 2024 Decision Wheel Studio. Gamified Choices.</span>
+        <span>© 2026 Tawdball Tech. Gamified Choices.</span>
         <div className="footer-links">
           <a href="#">Privacy</a>
           <a href="#">Terms</a>
