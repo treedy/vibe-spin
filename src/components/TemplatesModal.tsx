@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { TEMPLATES } from '../data/templates';
@@ -17,7 +17,7 @@ const backdropVariants = {
 };
 
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.94, y: 24 },
+  hidden: { opacity: 0, scale: 0.95, y: -12 },
   visible: {
     opacity: 1,
     scale: 1,
@@ -26,8 +26,8 @@ const modalVariants = {
   },
   exit: {
     opacity: 0,
-    scale: 0.94,
-    y: 16,
+    scale: 0.95,
+    y: -8,
     transition: { duration: 0.18 },
   },
 };
@@ -52,7 +52,7 @@ export function TemplatesModal({ isOpen, isDirty, onClose, onLoadTemplate }: Tem
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  const handleLoad = (segments: Segment[]) => {
+  const handleLoad = useCallback((segments: Segment[]) => {
     if (isDirty) {
       const ok = window.confirm(
         'Loading this template will replace your current wheel. Continue?'
@@ -61,7 +61,7 @@ export function TemplatesModal({ isOpen, isDirty, onClose, onLoadTemplate }: Tem
     }
     onLoadTemplate(segments);
     onClose();
-  };
+  }, [isDirty, onLoadTemplate, onClose]);
 
   return (
     <AnimatePresence>
