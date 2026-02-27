@@ -97,6 +97,21 @@ describe('usePalettes', () => {
     expect(colors).toEqual([]);
   });
 
+  it('getColorsForSegments returns empty array for palette with empty colors array', () => {
+    const emptyPalette = {
+      id: 'empty-colors',
+      name: 'Empty Palette',
+      colors: [],
+      createdAt: Date.now(),
+      isDefault: false,
+    };
+    localStorage.setItem('vibe-spin:palettes', JSON.stringify([emptyPalette]));
+
+    const { result } = renderHook(() => usePalettes());
+    const colors = result.current.getColorsForSegments('empty-colors', 5);
+    expect(colors).toEqual([]);
+  });
+
   it('persists custom palettes to localStorage', () => {
     const { result } = renderHook(() => usePalettes());
     act(() => {

@@ -225,7 +225,12 @@ export function PalettesPanel({
                           onClick={() => handleApply(palette.id)}
                           role="button"
                           tabIndex={0}
-                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleApply(palette.id); }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleApply(palette.id);
+                            }
+                          }}
                         >
                           <div className="palettes-swatches">
                             {palette.colors.slice(0, 6).map((color, j) => (

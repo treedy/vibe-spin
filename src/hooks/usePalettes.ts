@@ -57,12 +57,13 @@ export function usePalettes() {
    */
   const getColorsForSegments = useCallback((paletteId: string, segmentCount: number): string[] => {
     const palette = palettes.find(p => p.id === paletteId);
-    if (!palette || segmentCount === 0) return [];
+    if (!palette || palette.colors.length === 0 || segmentCount === 0) return [];
 
     const colors = palette.colors;
     const result: string[] = [];
     for (let i = 0; i < segmentCount; i++) {
-      result.push(colors[i % colors.length]!);
+      const color = colors[i % colors.length];
+      if (color) result.push(color);
     }
     return result;
   }, [palettes]);
