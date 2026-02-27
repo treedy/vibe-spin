@@ -13,3 +13,5 @@ Animations should use Framer Montion's `animate` and the `framer-motion-animator
 For writing and configuring tests use the `vitest` skill.
 
 For building and running the project use the `vite` skill.
+
+After changes, make sure to run `npm run build` and resolve any errors.
