@@ -18,6 +18,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.30.3",
   "type": "commonjs",
   "dependencies": {
     "framer-motion": "^12.34.2",
