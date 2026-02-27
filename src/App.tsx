@@ -237,12 +237,14 @@ export default function App() {
                   value={editNameValue}
                   onChange={e => setEditNameValue(e.target.value)}
                   onBlur={() => {
-                    renameWheel(activeId, editNameValue.trim() || activeWheel.name);
+                    const name = editNameValue.trim() || activeWheel.name;
+                    renameWheel(activeId, name);
                     setIsEditingName(false);
                   }}
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
-                      renameWheel(activeId, editNameValue.trim() || activeWheel.name);
+                      const name = editNameValue.trim() || activeWheel.name;
+                      renameWheel(activeId, name);
                       setIsEditingName(false);
                     }
                     if (e.key === 'Escape') setIsEditingName(false);
