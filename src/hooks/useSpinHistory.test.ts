@@ -19,11 +19,11 @@ describe('useSpinHistory', () => {
       result.current.addEntry({ label: 'Pizza', color: '#ff5733', wheelName: 'Lunch' });
     });
     expect(result.current.history).toHaveLength(1);
-    expect(result.current.history[0].label).toBe('Pizza');
-    expect(result.current.history[0].color).toBe('#ff5733');
-    expect(result.current.history[0].wheelName).toBe('Lunch');
-    expect(result.current.history[0].id).toBeTruthy();
-    expect(result.current.history[0].ts).toBeGreaterThan(0);
+    expect(result.current.history[0]!.label).toBe('Pizza');
+    expect(result.current.history[0]!.color).toBe('#ff5733');
+    expect(result.current.history[0]!.wheelName).toBe('Lunch');
+    expect(result.current.history[0]!.id).toBeTruthy();
+    expect(result.current.history[0]!.ts).toBeGreaterThan(0);
 
     const stored = JSON.parse(localStorage.getItem('vibe-spin:history')!);
     expect(stored).toHaveLength(1);
@@ -38,8 +38,8 @@ describe('useSpinHistory', () => {
     act(() => {
       result.current.addEntry({ label: 'Second', color: '#bbb', wheelName: 'W' });
     });
-    expect(result.current.history[0].label).toBe('Second');
-    expect(result.current.history[1].label).toBe('First');
+    expect(result.current.history[0]!.label).toBe('Second');
+    expect(result.current.history[1]!.label).toBe('First');
   });
 
   it('caps history at 200 entries', () => {
@@ -72,7 +72,7 @@ describe('useSpinHistory', () => {
 
     const { result } = renderHook(() => useSpinHistory());
     expect(result.current.history).toHaveLength(1);
-    expect(result.current.history[0].label).toBe('Sushi');
+    expect(result.current.history[0]!.label).toBe('Sushi');
   });
 
   it('returns empty history if localStorage contains invalid JSON', () => {

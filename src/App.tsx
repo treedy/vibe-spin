@@ -94,9 +94,13 @@ export default function App() {
 
     const winningSegment = segments[winnerIndex];
     setTimeout(() => {
-      setWinner(winningSegment.label);
+      if (winningSegment) {
+        setWinner(winningSegment.label);
+        addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName: WHEEL_NAME });
+      } else {
+        setWinner(null);
+      }
       setIsSpinning(false);
-      addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName: WHEEL_NAME });
     }, 1500);
   }, [isSpinning, rotation, segments, addEntry]);
 
