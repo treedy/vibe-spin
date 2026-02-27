@@ -738,6 +738,70 @@ main {
   color: var(--text-primary);
 }
 
+/* App Modal */
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.app-modal {
+  width: min(560px, 100%);
+  max-height: min(88dvh, 88vh);
+  overflow: auto;
+  background: var(--card-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(37, 123, 244, 0.15);
+}
+
+.privacy-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.privacy-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.privacy-modal-content {
+  padding: 1rem 1.25rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.privacy-modal-content p {
+  margin: 0 0 0.8rem;
+}
+
+.privacy-modal-content ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.privacy-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.25rem 1.1rem;
+}
+
 /* History Drawer */
 .history-backdrop {
   position: fixed;

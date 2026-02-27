@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useTransition, useEffect } from 'react';
+import React, { useState, useCallback, useTransition, useEffect, useRef } from 'react';
 import './styles.css';
 import type { Segment } from './hooks/useSegments';
 import { useWheels } from './hooks/useWheels';
@@ -8,6 +8,7 @@ import { Wheel } from './components/Wheel';
 import { HistoryDrawer } from './components/HistoryDrawer';
 import { WheelsDrawer } from './components/WheelsDrawer';
 import { TemplatesModal } from './components/TemplatesModal';
+import { PrivacyModal } from './components/PrivacyModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
 
@@ -58,10 +59,12 @@ export default function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
   const [showCapToast, setShowCapToast] = useState(false);
+  const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     if (!capReached) return;
@@ -356,6 +359,12 @@ export default function App() {
         onNew={() => { createWheel(); setWheelsOpen(false); }}
       />
 
+      <PrivacyModal
+        isOpen={privacyOpen}
+        onClose={() => setPrivacyOpen(false)}
+        triggerRef={privacyTriggerRef}
+      />
+
       {showCapToast && (
         <div className="toast toast--warning">
           Maximum 50 wheels reached. Delete a wheel to create a new one.
@@ -366,7 +375,16 @@ export default function App() {
       <footer className="app-footer">
         <span>© 2026 Tawdball Tech. Gamified Choices.</span>
         <div className="footer-links">
-          <a href="#">Privacy</a>
+          <a
+            href="#"
+            ref={privacyTriggerRef}
+            onClick={(e) => {
+              e.preventDefault();
+              setPrivacyOpen(true);
+            }}
+          >
+            Privacy
+          </a>
           <a href="#">Terms</a>
           <a href="#">Feedback</a>
         </div>
