@@ -1015,3 +1015,207 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* Templates Modal */
+.templates-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+}
+
+.templates-modal {
+  position: fixed;
+  top: 5vh;
+  left: 50%;
+  /* Center without touching CSS transform — keeps Framer Motion's y/scale free of conflicts */
+  margin-left: max(-430px, calc(-50vw + 1rem));
+  width: min(860px, calc(100vw - 2rem));
+  max-height: min(90dvh, 90vh);
+  background: var(--card-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(37, 123, 244, 0.15);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.templates-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem 1.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.templates-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 0.25rem;
+}
+
+.templates-modal-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.templates-close-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.templates-close-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem 1.75rem 1.75rem;
+  overflow-y: auto;
+}
+
+.templates-grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.templates-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.templates-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  background: var(--background-dark);
+  border: 1px solid rgba(37, 123, 244, 0.18);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.template-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 18px rgba(37, 123, 244, 0.18);
+}
+
+.template-swatches {
+  display: flex;
+  height: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.template-swatch {
+  border-radius: 3px;
+  min-width: 4px;
+}
+
+.template-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.template-card-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.template-card-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.template-card-count {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 600px) {
+  .templates-modal {
+    /* Full-width bottom sheet on mobile */
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin-left: 0;
+    width: 100%;
+    max-height: min(92dvh, 92vh);
+    border-radius: 18px 18px 0 0;
+  }
+
+  .templates-modal-header {
+    padding: 1rem 1rem 0.75rem;
+  }
+
+  .templates-grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 0.75rem 1rem 1.25rem;
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .template-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .template-swatches {
+    width: 48px;
+    height: 48px;
+    flex-direction: column;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .template-swatch {
+    width: 100%;
+    border-radius: 2px;
+    min-height: 4px;
+  }
+}

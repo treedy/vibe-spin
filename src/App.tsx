@@ -5,6 +5,7 @@ import { useSpinHistory } from './hooks/useSpinHistory';
 import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
 import { HistoryDrawer } from './components/HistoryDrawer';
+import { TemplatesModal } from './components/TemplatesModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
 
@@ -48,6 +49,8 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [celebrationEnabled, setCelebrationEnabled] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const recentSessions = history.slice(0, 4);
 
@@ -57,6 +60,21 @@ export default function App() {
       setWinner(null);
     });
   }, [setSegments]);
+
+  const loadTemplate = useCallback((templateSegments: Segment[]) => {
+    startTransition(() => {
+      setSegments(templateSegments);
+      setWinner(null);
+      setIsDirty(false);
+    });
+  }, [setSegments]);
+
+  const handleUpdateWeight = useCallback((i: number, v: number) => { setIsDirty(true); updateWeight(i, v); }, [updateWeight]);
+  const handleUpdatePercentage = useCallback((i: number, v: number) => { setIsDirty(true); updatePercentage(i, v); }, [updatePercentage]);
+  const handleUpdateLabel = useCallback((i: number, v: string) => { setIsDirty(true); updateLabel(i, v); }, [updateLabel]);
+  const handleUpdateColor = useCallback((i: number, v: string) => { setIsDirty(true); updateColor(i, v); }, [updateColor]);
+  const handleAddSegment = useCallback(() => { setIsDirty(true); addSegment(); }, [addSegment]);
+  const handleRemoveSegment = useCallback((i: number) => { setIsDirty(true); removeSegment(i); }, [removeSegment]);
 
   const spin = useCallback(() => {
     if (isSpinning) return;
@@ -121,7 +139,7 @@ export default function App() {
         </div>
         <div className="nav-links">
           <a href="#">My Wheels</a>
-          <a href="#">Templates</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); setTemplatesOpen(true); }}>Templates</a>
           <a href="#">History</a>
         </div>
         <div className="nav-actions">
@@ -187,12 +205,12 @@ export default function App() {
 
           <SegmentTable
             segments={segments}
-            onUpdateWeight={updateWeight}
-            onUpdatePercentage={updatePercentage}
-            onUpdateLabel={updateLabel}
-            onUpdateColor={updateColor}
-            onAddSegment={addSegment}
-            onRemoveSegment={removeSegment}
+            onUpdateWeight={handleUpdateWeight}
+            onUpdatePercentage={handleUpdatePercentage}
+            onUpdateLabel={handleUpdateLabel}
+            onUpdateColor={handleUpdateColor}
+            onAddSegment={handleAddSegment}
+            onRemoveSegment={handleRemoveSegment}
             presets={PRESETS}
             onLoadPreset={loadPreset}
           />
@@ -252,6 +270,13 @@ export default function App() {
           )}
         </div>
       </section>
+
+      <TemplatesModal
+        isOpen={templatesOpen}
+        isDirty={isDirty}
+        onClose={() => setTemplatesOpen(false)}
+        onLoadTemplate={loadTemplate}
+      />
 
       <HistoryDrawer
         isOpen={historyOpen}
