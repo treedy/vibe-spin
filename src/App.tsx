@@ -129,16 +129,17 @@ export default function App() {
     setRotation(finalRotation);
 
     const winningSegment = segments[winnerIndex];
+    const wheelName = activeWheel.name;
     setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
-        addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName: activeWheel.name });
+        addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName });
       } else {
         setWinner(null);
       }
       setIsSpinning(false);
     }, 1500);
-  }, [isSpinning, rotation, segments, addEntry]);
+  }, [isSpinning, rotation, segments, addEntry, activeWheel.name]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -230,7 +231,7 @@ export default function App() {
         {/* Segments Panel */}
         <div className="segments-panel">
           <div className="segments-header">
-            <div className="wheel-name-row">
+            <div className="segments-title-row">
               {isEditingName ? (
                 <input
                   className="wheel-name-input"
@@ -254,17 +255,17 @@ export default function App() {
               ) : (
                 <span
                   className="wheel-name-display"
-                  onDoubleClick={() => {
+                  onClick={() => {
                     setEditNameValue(activeWheel.name);
                     setIsEditingName(true);
                   }}
-                  title="Double-click to rename"
+                  title="Click to rename"
                 >
                   {activeWheel.name}
                 </span>
               )}
+              <h2 className="segments-title">Segments</h2>
             </div>
-            <h2 className="segments-title">Segments</h2>
             <p className="segments-subtitle">Manage labels, colors and winning weights</p>
           </div>
 
