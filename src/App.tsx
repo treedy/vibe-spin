@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useTransition, useEffect } from 'react';
 import './styles.css';
-import { useSegments, type Segment } from './hooks/useSegments';
+import type { Segment } from './hooks/useSegments';
+import { useWheels } from './hooks/useWheels';
 import { useSpinHistory } from './hooks/useSpinHistory';
 import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
 import { HistoryDrawer } from './components/HistoryDrawer';
+import { WheelsDrawer } from './components/WheelsDrawer';
 import { TemplatesModal } from './components/TemplatesModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
@@ -27,11 +29,16 @@ const PRESETS = [
   ]},
 ];
 
-const WHEEL_NAME = 'Decision Wheel';
-
-
 export default function App() {
   const {
+    wheels,
+    activeId,
+    activeWheel,
+    capReached,
+    setActiveId,
+    createWheel,
+    deleteWheel,
+    renameWheel,
     segments,
     updateWeight,
     updatePercentage,
@@ -39,8 +46,8 @@ export default function App() {
     updateColor,
     addSegment,
     removeSegment,
-    setSegments
-  } = useSegments();
+    setSegments,
+  } = useWheels();
   const { history, addEntry, clearHistory } = useSpinHistory();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
@@ -49,8 +56,19 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [celebrationEnabled, setCelebrationEnabled] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState('');
+  const [showCapToast, setShowCapToast] = useState(false);
+
+  useEffect(() => {
+    if (!capReached) return;
+    setShowCapToast(true);
+    const t = setTimeout(() => setShowCapToast(false), 4000);
+    return () => clearTimeout(t);
+  }, [capReached]);
 
   const recentSessions = history.slice(0, 4);
 
@@ -111,16 +129,17 @@ export default function App() {
     setRotation(finalRotation);
 
     const winningSegment = segments[winnerIndex];
+    const wheelName = activeWheel.name;
     setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
-        addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName: WHEEL_NAME });
+        addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName });
       } else {
         setWinner(null);
       }
       setIsSpinning(false);
     }, 1500);
-  }, [isSpinning, rotation, segments, addEntry]);
+  }, [isSpinning, rotation, segments, addEntry, activeWheel.name]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -151,12 +170,12 @@ export default function App() {
           <div className="logo-text">DECISION<span>WHEEL</span></div>
         </div>
         <div className="nav-links">
-          <a href="#">My Wheels</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); setWheelsOpen(true); }}>My Wheels</a>
           <a href="#" onClick={(e) => { e.preventDefault(); setTemplatesOpen(true); }}>Templates</a>
           <a href="#">History</a>
         </div>
         <div className="nav-actions">
-          <button className="new-wheel-btn">New Wheel</button>
+          <button className="new-wheel-btn" onClick={createWheel}>New Wheel</button>
           <button className="avatar-btn">
             <User size={18} />
           </button>
@@ -212,7 +231,41 @@ export default function App() {
         {/* Segments Panel */}
         <div className="segments-panel">
           <div className="segments-header">
-            <h2 className="segments-title">Segments</h2>
+            <div className="segments-title-row">
+              {isEditingName ? (
+                <input
+                  className="wheel-name-input"
+                  value={editNameValue}
+                  onChange={e => setEditNameValue(e.target.value)}
+                  onBlur={() => {
+                    const name = editNameValue.trim() || activeWheel.name;
+                    renameWheel(activeId, name);
+                    setIsEditingName(false);
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      const name = editNameValue.trim() || activeWheel.name;
+                      renameWheel(activeId, name);
+                      setIsEditingName(false);
+                    }
+                    if (e.key === 'Escape') setIsEditingName(false);
+                  }}
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="wheel-name-display"
+                  onClick={() => {
+                    setEditNameValue(activeWheel.name);
+                    setIsEditingName(true);
+                  }}
+                  title="Click to rename"
+                >
+                  {activeWheel.name}
+                </span>
+              )}
+              <h2 className="segments-title">Segments</h2>
+            </div>
             <p className="segments-subtitle">Manage labels, colors and winning weights</p>
           </div>
 
@@ -297,6 +350,22 @@ export default function App() {
         history={history}
         onClearHistory={clearHistory}
       />
+
+      <WheelsDrawer
+        isOpen={wheelsOpen}
+        onClose={() => setWheelsOpen(false)}
+        wheels={wheels}
+        activeId={activeId}
+        onSelect={setActiveId}
+        onDelete={deleteWheel}
+        onNew={() => { createWheel(); setWheelsOpen(false); }}
+      />
+
+      {showCapToast && (
+        <div className="toast toast--warning">
+          Maximum 50 wheels reached. Delete a wheel to create a new one.
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="app-footer">
