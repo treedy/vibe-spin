@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import type { Segment } from '../hooks/useSegments';
-import { Trash2, Plus, Palette, RotateCcw } from 'lucide-react';
+import { Trash2, Plus, RotateCcw } from 'lucide-react';
 
 interface SegmentRowProps {
   segment: Segment;
@@ -94,10 +94,6 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
 
 SegmentRow.displayName = 'SegmentRow';
 
-interface Preset {
-  name: string;
-  segments: Segment[];
-}
 
 export const SegmentTable: React.FC<{
   segments: Segment[],
@@ -108,25 +104,11 @@ export const SegmentTable: React.FC<{
   onAddSegment: () => void,
   onRemoveSegment: (i: number) => void,
   onResetWeights?: () => void,
-  presets?: Preset[],
-  onLoadPreset?: (segments: Segment[]) => void
-}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onResetWeights, presets, onLoadPreset }) => {
+}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onResetWeights }) => {
   const canRemove = segments.length > 2;
 
   return (
     <div className="table-container">
-      {/* Preset Row */}
-      {presets && presets.length > 0 && (
-        <div className="preset-row">
-          {presets.map(p => (
-            <button key={p.name} className="preset-btn" onClick={() => onLoadPreset?.(p.segments)}>
-              {p.name}
-              <Palette size={14} />
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Header */}
       <div className="row header">
         <div className="col">Segment</div>
