@@ -26,6 +26,10 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
   const [inputPct, setInputPct] = useState<string | null>(null);
   const inputPctRef = useRef<string | null>(null);
 
+  const handleEnterBlur = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') { e.currentTarget.blur(); }
+  }, []);
+
   const setDraft = (v: string | null) => {
     inputPctRef.current = v;
     setInputPct(v);
@@ -49,6 +53,7 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
         className="label-input"
         value={segment.label}
         onChange={(e) => onUpdateLabel(index, e.target.value)}
+        onKeyDown={handleEnterBlur}
       />
       <input
         type="color"
@@ -61,6 +66,7 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
         className="weight-input"
         value={segment.weight}
         onChange={(e) => onUpdateWeight(index, Number(e.target.value))}
+        onKeyDown={handleEnterBlur}
         min="1"
       />
       <input
@@ -70,7 +76,7 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
         onChange={(e) => setDraft(e.target.value)}
         onFocus={() => setDraft(segment.percentage.toFixed(1))}
         onBlur={commitPercentage}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
+        onKeyDown={handleEnterBlur}
         min="0.01"
         max="99.99"
         step="0.1"
