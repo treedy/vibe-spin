@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { nextSegmentColor } from '../utils/colorUtils';
 
 export interface Segment {
   id: string;
@@ -60,7 +61,7 @@ export function useSegments() {
     setSegments(prev => {
       const newSegments = [
         ...prev,
-        { id, label: `Option ${prev.length + 1}`, weight: 1, percentage: 0, color: '#6366f1' }
+        { id, label: `Option ${prev.length + 1}`, weight: 1, percentage: 0, color: nextSegmentColor(prev) }
       ];
       const total = newSegments.reduce((sum, s) => sum + s.weight, 0);
       return newSegments.map(s => ({
