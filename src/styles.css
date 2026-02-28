@@ -430,35 +430,6 @@ main {
   margin: 0;
 }
 
-.preset-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.preset-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--background-dark);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  cursor: pointer;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.preset-btn:hover {
-  border-color: var(--primary);
-  background: rgba(37, 123, 244, 0.1);
-}
-
 .add-btn {
   width: 36px;
   height: 36px;

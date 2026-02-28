@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import type { Segment } from '../hooks/useSegments';
-import { Trash2, Plus, Palette, RotateCcw, GripVertical } from 'lucide-react';
+import { Trash2, Plus, RotateCcw, GripVertical } from 'lucide-react';
 
 interface SegmentRowProps {
   segment: Segment;
@@ -154,10 +154,6 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
 
 SegmentRow.displayName = 'SegmentRow';
 
-interface Preset {
-  name: string;
-  segments: Segment[];
-}
 
 export const SegmentTable: React.FC<{
   segments: Segment[],
@@ -169,9 +165,7 @@ export const SegmentTable: React.FC<{
   onRemoveSegment: (i: number) => void,
   onReorderSegments: (from: number, to: number) => void,
   onResetWeights?: () => void,
-  presets?: Preset[],
-  onLoadPreset?: (segments: Segment[]) => void
-}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onReorderSegments, onResetWeights, presets, onLoadPreset }) => {
+}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onReorderSegments, onResetWeights }) => {
   const canRemove = segments.length > 2;
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -212,18 +206,6 @@ export const SegmentTable: React.FC<{
 
   return (
     <div className="table-container">
-      {/* Preset Row */}
-      {presets && presets.length > 0 && (
-        <div className="preset-row">
-          {presets.map(p => (
-            <button key={p.name} className="preset-btn" onClick={() => onLoadPreset?.(p.segments)}>
-              {p.name}
-              <Palette size={14} />
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Header */}
       <div className="row header">
         <div className="col" />
