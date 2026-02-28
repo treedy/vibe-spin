@@ -102,6 +102,14 @@ export function useSegments() {
     });
   }, []);
 
+  const resetWeights = useCallback(() => {
+    setSegments(prev => {
+      const newSegments = prev.map(s => ({ ...s, weight: 1 }));
+      const total = newSegments.length;
+      return newSegments.map(s => ({ ...s, percentage: 100 / total }));
+    });
+  }, []);
+
   return {
     segments,
     updateWeight,
@@ -110,6 +118,7 @@ export function useSegments() {
     updateColor,
     addSegment,
     removeSegment,
+    resetWeights,
     setSegments
   };
 }

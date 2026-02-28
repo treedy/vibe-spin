@@ -49,4 +49,34 @@ describe('useSegments', () => {
       expect(result.current.segments[0]!.percentage).toBeCloseTo(99.99, 1);
     });
   });
+
+  describe('resetWeights', () => {
+    it('sets all segment weights to 1', () => {
+      const { result } = renderHook(() => useSegments());
+      act(() => {
+        result.current.updateWeight(0, 5);
+        result.current.updateWeight(1, 20);
+      });
+      act(() => {
+        result.current.resetWeights();
+      });
+      result.current.segments.forEach(s => {
+        expect(s.weight).toBe(1);
+      });
+    });
+
+    it('recalculates equal percentages after reset', () => {
+      const { result } = renderHook(() => useSegments());
+      act(() => {
+        result.current.updateWeight(0, 5);
+      });
+      act(() => {
+        result.current.resetWeights();
+      });
+      const expectedPct = 100 / result.current.segments.length;
+      result.current.segments.forEach(s => {
+        expect(s.percentage).toBeCloseTo(expectedPct, 5);
+      });
+    });
+  });
 });
