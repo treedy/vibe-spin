@@ -13,7 +13,6 @@ import { PalettesPanel } from './components/PalettesPanel';
 import { PrivacyModal } from './components/PrivacyModal';
 import { TermsModal } from './components/TermsModal';
 import { formatRelativeTime } from './utils/timeFormat';
-import { hexToRgb, getContrast } from './utils/colorUtils';
 import { Share2, Settings, User } from 'lucide-react';
 
 const PRESETS = [
@@ -61,13 +60,8 @@ export default function App() {
 
   const winnerStyle = useMemo((): React.CSSProperties | null => {
     if (!winnerColor) return null;
-    const rgb = hexToRgb(winnerColor);
-    const contrast = getContrast(winnerColor, '#0a0f16');
     return {
       color: winnerColor,
-      '--winner-glow-from': rgb ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.5)` : 'rgba(0,242,255,0.5)',
-      '--winner-glow-to': rgb ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.8)` : 'rgba(0,242,255,0.8)',
-      ...(contrast < 4.5 ? { textShadow: '0 0 1px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.9)' } : {}),
     } as React.CSSProperties;
   }, [winnerColor]);
   const [isSpinning, setIsSpinning] = useState(false);
