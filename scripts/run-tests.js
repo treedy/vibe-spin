@@ -10,9 +10,9 @@ function run(cmd) {
 }
 
 if (order === 'e2e-first') {
-  run('npm run test:e2e');
-  run('npm run test:unit');
+  run('pnpm run test:e2e');
+  run('pnpm run test:unit');
 } else {
-  run('npm run test:unit');
-  run('npm run test:e2e');
+  run('pnpm run test:unit');
+  run('pnpm run test:e2e');
 }
