@@ -154,3 +154,4 @@ vite.config.ts.timestamp-*
 
 # Project specific
 temp_screenshots/
+package-lock.json
