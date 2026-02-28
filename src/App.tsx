@@ -11,6 +11,7 @@ import { WheelsDrawer } from './components/WheelsDrawer';
 import { TemplatesModal } from './components/TemplatesModal';
 import { PalettesPanel } from './components/PalettesPanel';
 import { PrivacyModal } from './components/PrivacyModal';
+import { TermsModal } from './components/TermsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
 
@@ -63,11 +64,13 @@ export default function App() {
   const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
   const [showCapToast, setShowCapToast] = useState(false);
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
+  const termsTriggerRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     if (!capReached) return;
@@ -392,6 +395,11 @@ export default function App() {
         onClose={() => setPrivacyOpen(false)}
         triggerRef={privacyTriggerRef}
       />
+      <TermsModal
+        isOpen={termsOpen}
+        onClose={() => setTermsOpen(false)}
+        triggerRef={termsTriggerRef}
+      />
 
       {showCapToast && (
         <div className="toast toast--warning">
@@ -413,7 +421,16 @@ export default function App() {
           >
             Privacy
           </a>
-          <a href="#">Terms</a>
+          <a
+            href="#"
+            ref={termsTriggerRef}
+            onClick={(e) => {
+              e.preventDefault();
+              setTermsOpen(true);
+            }}
+          >
+            Terms
+          </a>
           <a href="#">Feedback</a>
         </div>
       </footer>
