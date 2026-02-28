@@ -3,11 +3,13 @@ import './styles.css';
 import type { Segment } from './hooks/useSegments';
 import { useWheels } from './hooks/useWheels';
 import { useSpinHistory } from './hooks/useSpinHistory';
+import { usePalettes } from './hooks/usePalettes';
 import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
 import { HistoryDrawer } from './components/HistoryDrawer';
 import { WheelsDrawer } from './components/WheelsDrawer';
 import { TemplatesModal } from './components/TemplatesModal';
+import { PalettesPanel } from './components/PalettesPanel';
 import { PrivacyModal } from './components/PrivacyModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
@@ -50,6 +52,7 @@ export default function App() {
     setSegments,
   } = useWheels();
   const { history, addEntry, clearHistory } = useSpinHistory();
+  const { palettes, createPalette, deletePalette, getColorsForSegments } = usePalettes();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -89,6 +92,23 @@ export default function App() {
       setIsDirty(false);
     });
   }, [setSegments]);
+
+  const handleApplyPalette = useCallback((paletteId: string) => {
+    const newColors = getColorsForSegments(paletteId, segments.length);
+    if (newColors.length === 0) return;
+    startTransition(() => {
+      const updatedSegments = segments.map((seg, i) => ({
+        ...seg,
+        color: newColors[i]!,
+      }));
+      setSegments(updatedSegments);
+      setIsDirty(true);
+    });
+  }, [segments, getColorsForSegments, setSegments]);
+
+  const handleSavePalette = useCallback((name: string, colors: string[]) => {
+    createPalette(name, colors);
+  }, [createPalette]);
 
   const handleUpdateWeight = useCallback((i: number, v: number) => { setIsDirty(true); updateWeight(i, v); }, [updateWeight]);
   const handleUpdatePercentage = useCallback((i: number, v: number) => { setIsDirty(true); updatePercentage(i, v); }, [updatePercentage]);
@@ -266,6 +286,14 @@ export default function App() {
             </div>
             <p className="segments-subtitle">Manage labels, colors and weights</p>
           </div>
+
+          <PalettesPanel
+            palettes={palettes}
+            currentColors={segments.map(s => s.color)}
+            onApplyPalette={handleApplyPalette}
+            onSavePalette={handleSavePalette}
+            onDeletePalette={deletePalette}
+          />
 
           <SegmentTable
             segments={segments}
