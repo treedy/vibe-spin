@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useTransition, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useTransition, useEffect, useRef, useMemo } from 'react';
 import './styles.css';
 import type { Segment } from './hooks/useSegments';
 import { useWheels } from './hooks/useWheels';
@@ -57,6 +57,14 @@ export default function App() {
   const { palettes, createPalette, deletePalette, getColorsForSegments } = usePalettes();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
+  const [winnerColor, setWinnerColor] = useState<string | null>(null);
+
+  const winnerStyle = useMemo((): React.CSSProperties | null => {
+    if (!winnerColor) return null;
+    return {
+      color: winnerColor,
+    } as React.CSSProperties;
+  }, [winnerColor]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -121,6 +129,7 @@ export default function App() {
     startTransition(() => {
       setSegments(presetSegments);
       setWinner(null);
+      setWinnerColor(null);
     });
   }, [setSegments]);
 
@@ -128,6 +137,7 @@ export default function App() {
     startTransition(() => {
       setSegments(templateSegments);
       setWinner(null);
+      setWinnerColor(null);
       setIsDirty(false);
     });
   }, [setSegments]);
@@ -161,6 +171,7 @@ export default function App() {
 
     setIsSpinning(true);
     setWinner(null);
+    setWinnerColor(null);
 
     const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
     const randomWeight = Math.random() * totalWeight;
@@ -195,9 +206,11 @@ export default function App() {
     setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
+        setWinnerColor(winningSegment.color);
         addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName });
       } else {
         setWinner(null);
+        setWinnerColor(null);
       }
       setIsSpinning(false);
     }, 1500);
@@ -278,8 +291,14 @@ export default function App() {
             Spin the Wheel
           </button>
           <span className="spin-hint">Press space or click to spin</span>
-          {winner ? (
-            <div className="winner-overlay">
+          {winner && winnerStyle ? (
+            <div
+              className="winner-overlay"
+              style={winnerStyle}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               🎉 Winner: {winner}
             </div>
           ) : null}
