@@ -14,8 +14,8 @@ import { PrivacyModal } from './components/PrivacyModal';
 import { TermsModal } from './components/TermsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
-import { Share2, Settings, User } from 'lucide-react';
 import { useAudio } from './hooks/useAudio';
+import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const PRESETS = [
   { name: 'Lunch', segments: [
@@ -75,6 +75,7 @@ export default function App() {
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
@@ -256,8 +257,40 @@ export default function App() {
           <button className="avatar-btn">
             <User size={18} />
           </button>
+          <button
+            className="hamburger-btn"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setMobileMenuOpen(o => !o)}
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
       </nav>
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <nav id="mobile-nav" className="mobile-nav" aria-label="Mobile navigation">
+          <button
+            className="mobile-nav-link"
+            onClick={() => { setWheelsOpen(true); setMobileMenuOpen(false); }}
+          >
+            My Wheels
+          </button>
+          <button
+            className="mobile-nav-link"
+            onClick={() => { setTemplatesOpen(true); setMobileMenuOpen(false); }}
+          >
+            Templates
+          </button>
+          <button
+            className="mobile-nav-link mobile-nav-new-wheel"
+            onClick={() => { createWheel(); setMobileMenuOpen(false); }}
+          >
+            New Wheel
+          </button>
+        </nav>
+      )}
 
       {/* Page Header */}
       <div className="page-header">
