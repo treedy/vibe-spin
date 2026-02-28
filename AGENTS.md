@@ -14,4 +14,6 @@ For writing and configuring tests use the `vitest` skill.
 
 For building and running the project use the `vite` skill.
 
-After changes, make sure to run `npm run build` and resolve any errors.
+After changes, make sure to run `pnpm run build` and resolve any errors.
+
+Always use the `pnpm` command instead of `npm`
