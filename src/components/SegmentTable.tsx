@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import type { Segment } from '../hooks/useSegments';
-import { Trash2, Plus, Palette } from 'lucide-react';
+import { Trash2, Plus, Palette, RotateCcw } from 'lucide-react';
 
 interface SegmentRowProps {
   segment: Segment;
@@ -101,9 +101,10 @@ export const SegmentTable: React.FC<{
   onUpdateColor: (i: number, c: string) => void,
   onAddSegment: () => void,
   onRemoveSegment: (i: number) => void,
+  onResetWeights?: () => void,
   presets?: Preset[],
   onLoadPreset?: (segments: Segment[]) => void
-}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, presets, onLoadPreset }) => {
+}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onResetWeights, presets, onLoadPreset }) => {
   const canRemove = segments.length > 2;
 
   return (
@@ -149,6 +150,14 @@ export const SegmentTable: React.FC<{
         <Plus size={16} />
         {segments.length === 0 ? 'Add your first segment' : 'Add segment'}
       </button>
+
+      {/* Reset Weights Button */}
+      {onResetWeights && (
+        <button className="reset-weights-btn" onClick={onResetWeights}>
+          <RotateCcw size={14} />
+          Reset Weights
+        </button>
+      )}
     </div>
   );
 };

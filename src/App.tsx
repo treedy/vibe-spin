@@ -17,6 +17,8 @@ import { encodeWheel, decodeWheel } from './utils/permalink';
 import { useAudio } from './hooks/useAudio';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
+const RESET_TOAST_DURATION = 5000;
+
 const PRESETS = [
   { name: 'Lunch', segments: [
     { id: 'l1', label: 'Pizza', weight: 1, percentage: 33.3, color: '#FF5733' },
@@ -52,6 +54,7 @@ export default function App() {
     updateColor,
     addSegment,
     removeSegment,
+    resetWeights,
     setSegments,
   } = useWheels();
   const { history, addEntry, clearHistory } = useSpinHistory();
@@ -81,6 +84,9 @@ export default function App() {
   const [editNameValue, setEditNameValue] = useState('');
   const [showCapToast, setShowCapToast] = useState(false);
   const [showCopiedToast, setShowCopiedToast] = useState(false);
+  const [showResetToast, setShowResetToast] = useState(false);
+  const prevSegmentsRef = useRef<Segment[] | null>(null);
+  const resetToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
   const termsTriggerRef = useRef<HTMLAnchorElement>(null);
 
@@ -165,6 +171,24 @@ export default function App() {
   const handleUpdatePercentage = useCallback((i: number, v: number) => { setIsDirty(true); updatePercentage(i, v); }, [updatePercentage]);
   const handleUpdateLabel = useCallback((i: number, v: string) => { setIsDirty(true); updateLabel(i, v); }, [updateLabel]);
   const handleUpdateColor = useCallback((i: number, v: string) => { setIsDirty(true); updateColor(i, v); }, [updateColor]);
+  const handleResetWeights = useCallback(() => {
+    prevSegmentsRef.current = segments;
+    setIsDirty(true);
+    resetWeights();
+    if (resetToastTimerRef.current) clearTimeout(resetToastTimerRef.current);
+    setShowResetToast(true);
+    resetToastTimerRef.current = setTimeout(() => setShowResetToast(false), RESET_TOAST_DURATION);
+  }, [segments, resetWeights]);
+
+  const handleUndoReset = useCallback(() => {
+    if (prevSegmentsRef.current) {
+      setSegments(prevSegmentsRef.current);
+      prevSegmentsRef.current = null;
+    }
+    if (resetToastTimerRef.current) clearTimeout(resetToastTimerRef.current);
+    setShowResetToast(false);
+  }, [setSegments]);
+
   const handleAddSegment = useCallback(() => { setIsDirty(true); addSegment(); }, [addSegment]);
   const handleRemoveSegment = useCallback((i: number) => { setIsDirty(true); removeSegment(i); }, [removeSegment]);
 
@@ -397,6 +421,7 @@ export default function App() {
             onUpdateColor={handleUpdateColor}
             onAddSegment={handleAddSegment}
             onRemoveSegment={handleRemoveSegment}
+            onResetWeights={handleResetWeights}
             presets={PRESETS}
             onLoadPreset={loadPreset}
           />
@@ -491,6 +516,13 @@ export default function App() {
         onClose={() => setTermsOpen(false)}
         triggerRef={termsTriggerRef}
       />
+
+      {showResetToast && (
+        <div className="toast toast--info">
+          Weights reset to 1.
+          <button className="toast-undo-btn" onClick={handleUndoReset}>Undo</button>
+        </div>
+      )}
 
       {showCapToast && (
         <div className="toast toast--warning">

@@ -236,6 +236,10 @@ export function useWheels() {
     [updateSegments]
   );
 
+  const resetWeights = useCallback(() => {
+    updateSegments(prev => recalcPercentages(prev.map(s => ({ ...s, weight: 1 }))));
+  }, [updateSegments]);
+
   return {
     wheels,
     activeId,
@@ -252,6 +256,7 @@ export function useWheels() {
     updateColor,
     addSegment,
     removeSegment,
+    resetWeights,
     setSegments,
   };
 }
