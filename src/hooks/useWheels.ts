@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Segment } from './useSegments';
+import { nextSegmentColor } from '../utils/colorUtils';
 
 const WHEELS_KEY = 'vibe-spin:wheels';
 const ACTIVE_KEY = 'vibe-spin:activeWheelId';
@@ -211,7 +212,7 @@ export function useWheels() {
       const id = genId();
       const newSegments = [
         ...prev,
-        { id, label: `Option ${prev.length + 1}`, weight: 1, percentage: 0, color: '#6366f1' },
+        { id, label: `Option ${prev.length + 1}`, weight: 1, percentage: 0, color: nextSegmentColor(prev) },
       ];
       return recalcPercentages(newSegments);
     });
