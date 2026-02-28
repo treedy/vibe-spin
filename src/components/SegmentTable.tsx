@@ -1,27 +1,45 @@
 import React, { useState, useRef, useCallback } from 'react';
 import type { Segment } from '../hooks/useSegments';
-import { Trash2, Plus, Palette, RotateCcw } from 'lucide-react';
+import { Trash2, Plus, Palette, RotateCcw, GripVertical } from 'lucide-react';
 
 interface SegmentRowProps {
   segment: Segment;
   index: number;
+  totalCount: number;
+  isDragging: boolean;
+  isDragOver: boolean;
   onUpdateWeight: (i: number, w: number) => void;
   onUpdatePercentage: (i: number, p: number) => void;
   onUpdateLabel: (i: number, l: string) => void;
   onUpdateColor: (i: number, c: string) => void;
   onRemoveSegment: (i: number) => void;
   canRemove: boolean;
+  onDragStart: (i: number) => void;
+  onDragOver: (i: number) => void;
+  onDrop: (i: number) => void;
+  onDragEnd: () => void;
+  onMoveUp: (i: number) => void;
+  onMoveDown: (i: number) => void;
 }
 
 const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
   segment,
   index,
+  totalCount,
+  isDragging,
+  isDragOver,
   onUpdateWeight,
   onUpdatePercentage,
   onUpdateLabel,
   onUpdateColor,
   onRemoveSegment,
-  canRemove
+  canRemove,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onMoveUp,
+  onMoveDown,
 }) => {
   const [inputPct, setInputPct] = useState<string | null>(null);
   const inputPctRef = useRef<string | null>(null);
@@ -46,8 +64,50 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
     }
   }, [index, onUpdatePercentage]);
 
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    onDragOver(index);
+  }, [index, onDragOver]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    onDrop(index);
+  }, [index, onDrop]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      onMoveUp(index);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      onMoveDown(index);
+    }
+  }, [index, onMoveUp, onMoveDown]);
+
+  const rowClasses = [
+    'row',
+    isDragging ? 'row--dragging' : '',
+    isDragOver ? 'row--drag-over' : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="row">
+    <div
+      className={rowClasses}
+      draggable
+      onDragStart={() => onDragStart(index)}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragEnd={onDragEnd}
+    >
+      <button
+        className="drag-handle"
+        aria-label={`Drag to reorder ${segment.label}`}
+        onKeyDown={handleKeyDown}
+        onMouseDown={(e) => e.preventDefault()}
+        tabIndex={0}
+      >
+        <GripVertical size={16} />
+      </button>
       <input
         type="text"
         className="label-input"
@@ -85,6 +145,7 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
         className="remove-btn"
         onClick={() => onRemoveSegment(index)}
         disabled={!canRemove}
+        aria-label={`Remove ${segment.label}`}
       >
         <Trash2 size={16} />
       </button>
@@ -107,11 +168,48 @@ export const SegmentTable: React.FC<{
   onUpdateColor: (i: number, c: string) => void,
   onAddSegment: () => void,
   onRemoveSegment: (i: number) => void,
+  onReorderSegments: (from: number, to: number) => void,
   onResetWeights?: () => void,
   presets?: Preset[],
   onLoadPreset?: (segments: Segment[]) => void
-}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onResetWeights, presets, onLoadPreset }) => {
+}> = ({ segments, onUpdateWeight, onUpdatePercentage, onUpdateLabel, onUpdateColor, onAddSegment, onRemoveSegment, onReorderSegments, onResetWeights, presets, onLoadPreset }) => {
   const canRemove = segments.length > 2;
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+
+  const handleDragStart = useCallback((index: number) => {
+    dragIndexRef.current = index;
+    setDraggingIndex(index);
+  }, []);
+
+  const handleDragOver = useCallback((index: number) => {
+    setDragOverIndex(index);
+  }, []);
+
+  const handleDrop = useCallback((toIndex: number) => {
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex !== null && fromIndex !== toIndex) {
+      onReorderSegments(fromIndex, toIndex);
+    }
+    dragIndexRef.current = null;
+    setDraggingIndex(null);
+    setDragOverIndex(null);
+  }, [onReorderSegments]);
+
+  const handleDragEnd = useCallback(() => {
+    dragIndexRef.current = null;
+    setDraggingIndex(null);
+    setDragOverIndex(null);
+  }, []);
+
+  const handleMoveUp = useCallback((index: number) => {
+    if (index > 0) onReorderSegments(index, index - 1);
+  }, [onReorderSegments]);
+
+  const handleMoveDown = useCallback((index: number) => {
+    if (index < segments.length - 1) onReorderSegments(index, index + 1);
+  }, [onReorderSegments, segments.length]);
 
   return (
     <div className="table-container">
@@ -129,6 +227,7 @@ export const SegmentTable: React.FC<{
 
       {/* Header */}
       <div className="row header">
+        <div className="col" />
         <div className="col">Segment</div>
         <div className="col">Color</div>
         <div className="col">Weight</div>
@@ -142,12 +241,21 @@ export const SegmentTable: React.FC<{
           key={s.id}
           segment={s}
           index={i}
+          totalCount={segments.length}
+          isDragging={draggingIndex === i}
+          isDragOver={dragOverIndex === i && draggingIndex !== i}
           onUpdateWeight={onUpdateWeight}
           onUpdatePercentage={onUpdatePercentage}
           onUpdateLabel={onUpdateLabel}
           onUpdateColor={onUpdateColor}
           onRemoveSegment={onRemoveSegment}
           canRemove={canRemove}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onDragEnd={handleDragEnd}
+          onMoveUp={handleMoveUp}
+          onMoveDown={handleMoveDown}
         />
       ))}
 

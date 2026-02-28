@@ -110,6 +110,16 @@ export function useSegments() {
     });
   }, []);
 
+  const reorderSegments = useCallback((fromIndex: number, toIndex: number) => {
+    setSegments(prev => {
+      if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= prev.length || toIndex >= prev.length) return prev;
+      const newSegments = [...prev];
+      const [moved] = newSegments.splice(fromIndex, 1);
+      newSegments.splice(toIndex, 0, moved!);
+      return newSegments;
+    });
+  }, []);
+
   return {
     segments,
     updateWeight,
@@ -119,6 +129,7 @@ export function useSegments() {
     addSegment,
     removeSegment,
     resetWeights,
+    reorderSegments,
     setSegments
   };
 }
