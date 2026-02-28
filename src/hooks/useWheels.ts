@@ -6,11 +6,13 @@ const WHEELS_KEY = 'vibe-spin:wheels';
 const ACTIVE_KEY = 'vibe-spin:activeWheelId';
 const MAX_WHEELS = 50;
 const DEBOUNCE_MS = 500;
+export const DEFAULT_SPIN_DURATION_MS = 5000;
 
 export interface WheelConfig {
   id: string;
   name: string;
   segments: Segment[];
+  spinDurationMs: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -40,13 +42,15 @@ function makeNewWheelName(wheels: WheelConfig[]): string {
 
 function makeBlankWheel(name: string): WheelConfig {
   const now = Date.now();
-  return { id: genId(), name, segments: makeDefaultSegments(), createdAt: now, updatedAt: now };
+  return { id: genId(), name, segments: makeDefaultSegments(), spinDurationMs: DEFAULT_SPIN_DURATION_MS, createdAt: now, updatedAt: now };
 }
 
 function loadWheels(): WheelConfig[] {
   try {
     const raw = localStorage.getItem(WHEELS_KEY);
-    return raw ? (JSON.parse(raw) as WheelConfig[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as WheelConfig[];
+    return parsed.map(w => ({ ...w, spinDurationMs: w.spinDurationMs ?? DEFAULT_SPIN_DURATION_MS }));
   } catch {
     return [];
   }
@@ -236,6 +240,16 @@ export function useWheels() {
     [updateSegments]
   );
 
+  const updateSpinDuration = useCallback((durationMs: number) => {
+    const clamped = Math.min(Math.max(durationMs, 2000), 60000);
+    setState(prev => ({
+      ...prev,
+      wheels: prev.wheels.map(w =>
+        w.id === prev.activeId ? { ...w, spinDurationMs: clamped, updatedAt: Date.now() } : w
+      ),
+    }));
+  }, []);
+
   return {
     wheels,
     activeId,
@@ -253,5 +267,6 @@ export function useWheels() {
     addSegment,
     removeSegment,
     setSegments,
+    updateSpinDuration,
   };
 }

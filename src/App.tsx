@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useTransition, useEffect, useRef, useMemo } from 'react';
 import './styles.css';
 import type { Segment } from './hooks/useSegments';
-import { useWheels } from './hooks/useWheels';
+import { useWheels, DEFAULT_SPIN_DURATION_MS } from './hooks/useWheels';
 import { useSpinHistory } from './hooks/useSpinHistory';
 import { usePalettes } from './hooks/usePalettes';
 import { SegmentTable } from './components/SegmentTable';
@@ -53,6 +53,7 @@ export default function App() {
     addSegment,
     removeSegment,
     setSegments,
+    updateSpinDuration,
   } = useWheels();
   const { history, addEntry, clearHistory } = useSpinHistory();
   const { palettes, createPalette, deletePalette, getColorsForSegments } = usePalettes();
@@ -206,6 +207,7 @@ export default function App() {
 
     const winningSegment = segments[winnerIndex];
     const wheelName = activeWheel.name;
+    const spinDurationMs = activeWheel.spinDurationMs ?? DEFAULT_SPIN_DURATION_MS;
     setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
@@ -217,8 +219,8 @@ export default function App() {
         setWinnerColor(null);
       }
       setIsSpinning(false);
-    }, 1500);
-  }, [isSpinning, rotation, segments, addEntry, activeWheel.name, play]);
+    }, spinDurationMs);
+  }, [isSpinning, rotation, segments, addEntry, activeWheel.name, activeWheel.spinDurationMs, play]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -234,6 +236,7 @@ export default function App() {
   }, [spin, isSpinning, isPending]);
 
   const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
+  const spinDurationSec = Math.round(activeWheel.spinDurationMs / 1000);
 
   return (
     <div className="app">
@@ -317,6 +320,7 @@ export default function App() {
               isSpinning={isSpinning}
               onSpin={spin}
               disabled={isSpinning || isPending}
+              spinDurationMs={activeWheel.spinDurationMs}
             />
           </div>
           <button
@@ -426,6 +430,22 @@ export default function App() {
               <div
                 className={`toggle ${celebrationEnabled ? 'active' : ''}`}
                 onClick={() => setCelebrationEnabled(!celebrationEnabled)}
+              />
+            </div>
+            <div className="setting-card setting-card--full">
+              <div className="setting-info">
+                <span className="setting-label">Spin Duration</span>
+                <span className="setting-value">{spinDurationSec}s</span>
+              </div>
+              <input
+                className="spin-duration-slider"
+                type="range"
+                min={2}
+                max={60}
+                step={1}
+                value={spinDurationSec}
+                onChange={e => updateSpinDuration(Number(e.target.value) * 1000)}
+                aria-label="Spin duration in seconds"
               />
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useWheels } from './useWheels';
+import { useWheels, DEFAULT_SPIN_DURATION_MS } from './useWheels';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 describe('useWheels', () => {
@@ -227,5 +227,88 @@ describe('useWheels', () => {
     localStorage.setItem('vibe-spin:wheels', 'not-valid-json');
     const { result } = renderHook(() => useWheels());
     expect(result.current.wheels).toHaveLength(1); // creates default blank wheel
+  });
+
+  it(`new wheels have a default spinDurationMs of ${DEFAULT_SPIN_DURATION_MS}`, () => {
+    const { result } = renderHook(() => useWheels());
+    expect(result.current.activeWheel.spinDurationMs).toBe(DEFAULT_SPIN_DURATION_MS);
+  });
+
+  it('updateSpinDuration updates spinDurationMs for the active wheel', () => {
+    const { result } = renderHook(() => useWheels());
+    act(() => {
+      result.current.updateSpinDuration(10000);
+    });
+    expect(result.current.activeWheel.spinDurationMs).toBe(10000);
+  });
+
+  it('updateSpinDuration clamps values to 2000–60000', () => {
+    const { result } = renderHook(() => useWheels());
+    act(() => {
+      result.current.updateSpinDuration(500);
+    });
+    expect(result.current.activeWheel.spinDurationMs).toBe(2000);
+
+    act(() => {
+      result.current.updateSpinDuration(120000);
+    });
+    expect(result.current.activeWheel.spinDurationMs).toBe(60000);
+  });
+
+  it('updateSpinDuration only affects the active wheel', () => {
+    const { result } = renderHook(() => useWheels());
+    act(() => {
+      result.current.createWheel();
+    });
+    const firstId = result.current.wheels[0]!.id;
+    act(() => {
+      result.current.updateSpinDuration(20000);
+    });
+    const firstWheel = result.current.wheels.find(w => w.id === firstId);
+    expect(firstWheel?.spinDurationMs).toBe(DEFAULT_SPIN_DURATION_MS);
+    expect(result.current.activeWheel.spinDurationMs).toBe(20000);
+  });
+
+  it('loads spinDurationMs from localStorage', () => {
+    const now = Date.now();
+    const wheels = [
+      {
+        id: 'wheel-abc',
+        name: 'Persisted Wheel',
+        spinDurationMs: 15000,
+        segments: [
+          { id: 's1', label: 'A', weight: 1, percentage: 50, color: '#fff' },
+          { id: 's2', label: 'B', weight: 1, percentage: 50, color: '#000' },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+    localStorage.setItem('vibe-spin:wheels', JSON.stringify(wheels));
+    localStorage.setItem('vibe-spin:activeWheelId', 'wheel-abc');
+
+    const { result } = renderHook(() => useWheels());
+    expect(result.current.activeWheel.spinDurationMs).toBe(15000);
+  });
+
+  it(`defaults spinDurationMs to ${DEFAULT_SPIN_DURATION_MS} for wheels loaded without it`, () => {
+    const now = Date.now();
+    const wheels = [
+      {
+        id: 'wheel-abc',
+        name: 'Old Wheel',
+        segments: [
+          { id: 's1', label: 'A', weight: 1, percentage: 50, color: '#fff' },
+          { id: 's2', label: 'B', weight: 1, percentage: 50, color: '#000' },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+    localStorage.setItem('vibe-spin:wheels', JSON.stringify(wheels));
+    localStorage.setItem('vibe-spin:activeWheelId', 'wheel-abc');
+
+    const { result } = renderHook(() => useWheels());
+    expect(result.current.activeWheel.spinDurationMs).toBe(DEFAULT_SPIN_DURATION_MS);
   });
 });

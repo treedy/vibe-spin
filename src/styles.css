@@ -712,6 +712,18 @@ main {
   transform: translateX(20px);
 }
 
+.setting-card--full {
+  grid-column: 1 / -1;
+  gap: 1rem;
+}
+
+.spin-duration-slider {
+  flex: 1;
+  accent-color: var(--primary);
+  cursor: pointer;
+  height: 4px;
+}
+
 /* Recent Sessions */
 .recent-section {
   padding: 0 2rem 2rem;

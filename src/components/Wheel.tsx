@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Segment } from '../hooks/useSegments';
+import { DEFAULT_SPIN_DURATION_MS } from '../hooks/useWheels';
 
 interface WheelProps {
   segments: Segment[];
@@ -8,6 +9,7 @@ interface WheelProps {
   isSpinning?: boolean;
   onSpin?: () => void;
   disabled?: boolean;
+  spinDurationMs?: number;
 }
 
 const RADIUS = 100;
@@ -31,7 +33,7 @@ function truncateLabel(label: string, sliceAngle: number): string {
   return label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
 }
 
-export const Wheel: React.FC<WheelProps> = React.memo(({ segments, rotation, isSpinning, onSpin, disabled }) => {
+export const Wheel: React.FC<WheelProps> = React.memo(({ segments, rotation, isSpinning, onSpin, disabled, spinDurationMs = DEFAULT_SPIN_DURATION_MS }) => {
   const slices = useMemo(() => {
     let currentAngle = 0;
     return segments.map((segment) => {
@@ -73,7 +75,7 @@ export const Wheel: React.FC<WheelProps> = React.memo(({ segments, rotation, isS
       {/* Wheel */}
       <motion.div
         animate={{ rotate: rotation }}
-        transition={{ type: 'spring', damping: 20, stiffness: 60 }}
+        transition={{ type: 'spring', duration: spinDurationMs / 1000, bounce: 0.1 }}
         style={{ width: '100%', height: '100%' }}
       >
         <svg
