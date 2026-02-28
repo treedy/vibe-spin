@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useTransition, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useTransition, useEffect, useRef, useMemo } from 'react';
 import './styles.css';
 import type { Segment } from './hooks/useSegments';
 import { useWheels } from './hooks/useWheels';
@@ -13,6 +13,8 @@ import { PalettesPanel } from './components/PalettesPanel';
 import { PrivacyModal } from './components/PrivacyModal';
 import { TermsModal } from './components/TermsModal';
 import { formatRelativeTime } from './utils/timeFormat';
+import { encodeWheel, decodeWheel } from './utils/permalink';
+import { useAudio } from './hooks/useAudio';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const PRESETS = [
@@ -56,9 +58,17 @@ export default function App() {
   const { palettes, createPalette, deletePalette, getColorsForSegments } = usePalettes();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
+  const [winnerColor, setWinnerColor] = useState<string | null>(null);
+
+  const winnerStyle = useMemo((): React.CSSProperties | null => {
+    if (!winnerColor) return null;
+    return {
+      color: winnerColor,
+    } as React.CSSProperties;
+  }, [winnerColor]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const { soundsEnabled, toggleSounds, play } = useAudio();
   const [celebrationEnabled, setCelebrationEnabled] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
@@ -70,6 +80,7 @@ export default function App() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
   const [showCapToast, setShowCapToast] = useState(false);
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
   const termsTriggerRef = useRef<HTMLAnchorElement>(null);
 
@@ -80,12 +91,47 @@ export default function App() {
     return () => clearTimeout(t);
   }, [capReached]);
 
+  // Parse ?wheel= URL parameter on mount and override state if valid
+  const hasProcessedUrl = useRef(false);
+  useEffect(() => {
+    if (hasProcessedUrl.current) return;
+    hasProcessedUrl.current = true;
+    const param = new URLSearchParams(window.location.search).get('wheel');
+    if (!param) return;
+    const shared = decodeWheel(param);
+    if (!shared) return;
+    const parsed = shared.segments.map((s, i) => ({
+      id: `shared-${i}`,
+      label: s.label,
+      weight: s.weight,
+      percentage: 0,
+      color: s.color,
+    }));
+    startTransition(() => {
+      renameWheel(activeId, shared.name);
+      setSegments(parsed);
+    });
+  }, [activeId, renameWheel, setSegments]);
+
+  const handleShare = useCallback(() => {
+    const encoded = encodeWheel(activeWheel.name, segments);
+    const url = `${window.location.origin}${window.location.pathname}?wheel=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setShowCopiedToast(true);
+      setTimeout(() => setShowCopiedToast(false), 2000);
+    }).catch(() => {
+      setShowCopiedToast(true);
+      setTimeout(() => setShowCopiedToast(false), 2000);
+    });
+  }, [activeWheel.name, segments]);
+
   const recentSpins = history.slice(0, 4);
 
   const loadPreset = useCallback((presetSegments: Segment[]) => {
     startTransition(() => {
       setSegments(presetSegments);
       setWinner(null);
+      setWinnerColor(null);
     });
   }, [setSegments]);
 
@@ -93,6 +139,7 @@ export default function App() {
     startTransition(() => {
       setSegments(templateSegments);
       setWinner(null);
+      setWinnerColor(null);
       setIsDirty(false);
     });
   }, [setSegments]);
@@ -126,7 +173,9 @@ export default function App() {
 
     setIsSpinning(true);
     setWinner(null);
-
+    setWinnerColor(null);
+    play('spin');
+    
     const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
     const randomWeight = Math.random() * totalWeight;
 
@@ -160,13 +209,16 @@ export default function App() {
     setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
+        setWinnerColor(winningSegment.color);
         addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName });
+        play('win');
       } else {
         setWinner(null);
+        setWinnerColor(null);
       }
       setIsSpinning(false);
     }, 1500);
-  }, [isSpinning, rotation, segments, addEntry, activeWheel.name]);
+  }, [isSpinning, rotation, segments, addEntry, activeWheel.name, play]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -243,7 +295,7 @@ export default function App() {
       {/* Page Header */}
       <div className="page-header">
         <div className="header-actions page-header-right">
-          <button className="header-btn">
+          <button className="header-btn" onClick={handleShare}>
             <Share2 size={16} />
             Share
           </button>
@@ -275,8 +327,14 @@ export default function App() {
             Spin the Wheel
           </button>
           <span className="spin-hint">Press space or click to spin</span>
-          {winner ? (
-            <div className="winner-overlay">
+          {winner && winnerStyle ? (
+            <div
+              className="winner-overlay"
+              style={winnerStyle}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               🎉 Winner: {winner}
             </div>
           ) : null}
@@ -356,8 +414,8 @@ export default function App() {
                 <span className="setting-value">Game Show Neon</span>
               </div>
               <div
-                className={`toggle ${soundEnabled ? 'active' : ''}`}
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`toggle ${soundsEnabled ? 'active' : ''}`}
+                onClick={toggleSounds}
               />
             </div>
             <div className="setting-card">
@@ -437,6 +495,12 @@ export default function App() {
       {showCapToast && (
         <div className="toast toast--warning">
           Maximum 50 wheels reached. Delete a wheel to create a new one.
+        </div>
+      )}
+
+      {showCopiedToast && (
+        <div className="toast toast--success">
+          Copied!
         </div>
       )}
 
