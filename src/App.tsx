@@ -12,6 +12,7 @@ import { TemplatesModal } from './components/TemplatesModal';
 import { PalettesPanel } from './components/PalettesPanel';
 import { PrivacyModal } from './components/PrivacyModal';
 import { TermsModal } from './components/TermsModal';
+import { FeedbackModal } from './components/FeedbackModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
 import { useAudio } from './hooks/useAudio';
@@ -75,6 +76,7 @@ export default function App() {
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -83,6 +85,7 @@ export default function App() {
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
   const termsTriggerRef = useRef<HTMLAnchorElement>(null);
+  const feedbackTriggerRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     if (!capReached) return;
@@ -491,6 +494,11 @@ export default function App() {
         onClose={() => setTermsOpen(false)}
         triggerRef={termsTriggerRef}
       />
+      <FeedbackModal
+        isOpen={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        triggerRef={feedbackTriggerRef}
+      />
 
       {showCapToast && (
         <div className="toast toast--warning">
@@ -528,7 +536,16 @@ export default function App() {
           >
             Terms
           </a>
-          <a href="#">Feedback</a>
+          <a
+            href="#"
+            ref={feedbackTriggerRef}
+            onClick={(e) => {
+              e.preventDefault();
+              setFeedbackOpen(true);
+            }}
+          >
+            Feedback
+          </a>
         </div>
       </footer>
     </div>
