@@ -80,6 +80,11 @@ export const Wheel: React.FC<WheelProps> = React.memo(({ segments, rotation, isS
           viewBox="0 0 200 200"
           style={{ width: '100%', height: '100%', display: 'block', filter: 'drop-shadow(0 0 20px rgba(37, 123, 244, 0.3))' }}
         >
+          <defs>
+            <filter id="labelDrop" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#000" floodOpacity="0.6" />
+            </filter>
+          </defs>
           {slices.map((slice) => (
             <path
               key={slice.id}
@@ -96,6 +101,7 @@ export const Wheel: React.FC<WheelProps> = React.memo(({ segments, rotation, isS
                 x={CENTER_X + LABEL_RADIUS}
                 y={CENTER_Y}
                 transform={`rotate(${slice.midAngle}, ${CENTER_X}, ${CENTER_Y})`}
+                filter={"url(#labelDrop)"}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill="rgba(255,255,255,0.92)"
