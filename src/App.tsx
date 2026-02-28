@@ -20,23 +20,6 @@ import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
 
-const PRESETS = [
-  { name: 'Lunch', segments: [
-    { id: 'l1', label: 'Pizza', weight: 1, percentage: 33.3, color: '#FF5733' },
-    { id: 'l2', label: 'Sushi', weight: 1, percentage: 33.3, color: '#33FF57' },
-    { id: 'l3', label: 'Tacos', weight: 1, percentage: 33.3, color: '#3357FF' },
-  ]},
-  { name: 'Truth or Dare', segments: [
-    { id: 'td1', label: 'Truth', weight: 1, percentage: 50, color: '#f43f5e' },
-    { id: 'td2', label: 'Dare', weight: 1, percentage: 50, color: '#6366f1' },
-  ]},
-  { name: 'Monochromatic Blue', segments: [
-    { id: 'l1', label: 'Deep Ocean', weight: 10, percentage: 25, color: '#1a5fb4' },
-    { id: 'l2', label: 'Electric Sky', weight: 10, percentage: 25, color: '#3584e4' },
-    { id: 'l3', label: 'Neon Cobalt', weight: 10, percentage: 25, color: '#62a0ea' },
-    { id: 'l4', label: 'Cyan Flash', weight: 10, percentage: 25, color: '#00f2ff' },
-  ]},
-];
 
 export default function App() {
   const {
@@ -135,14 +118,6 @@ export default function App() {
   }, [activeWheel.name, segments]);
 
   const recentSpins = history.slice(0, 4);
-
-  const loadPreset = useCallback((presetSegments: Segment[]) => {
-    startTransition(() => {
-      setSegments(presetSegments);
-      setWinner(null);
-      setWinnerColor(null);
-    });
-  }, [setSegments]);
 
   const loadTemplate = useCallback((templateSegments: Segment[]) => {
     startTransition(() => {
@@ -425,8 +400,6 @@ export default function App() {
             onAddSegment={handleAddSegment}
             onRemoveSegment={handleRemoveSegment}
             onResetWeights={handleResetWeights}
-            presets={PRESETS}
-            onLoadPreset={loadPreset}
           />
 
           <div className="table-footer">
