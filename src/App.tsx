@@ -14,6 +14,7 @@ import { PrivacyModal } from './components/PrivacyModal';
 import { TermsModal } from './components/TermsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { Share2, Settings, User } from 'lucide-react';
+import { useAudio } from './hooks/useAudio';
 
 const PRESETS = [
   { name: 'Lunch', segments: [
@@ -58,7 +59,7 @@ export default function App() {
   const [winner, setWinner] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const { soundsEnabled, toggleSounds, play } = useAudio();
   const [celebrationEnabled, setCelebrationEnabled] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
@@ -125,6 +126,7 @@ export default function App() {
 
     setIsSpinning(true);
     setWinner(null);
+    play('spin');
 
     const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
     const randomWeight = Math.random() * totalWeight;
@@ -160,12 +162,13 @@ export default function App() {
       if (winningSegment) {
         setWinner(winningSegment.label);
         addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName });
+        play('win');
       } else {
         setWinner(null);
       }
       setIsSpinning(false);
     }, 1500);
-  }, [isSpinning, rotation, segments, addEntry, activeWheel.name]);
+  }, [isSpinning, rotation, segments, addEntry, activeWheel.name, play]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -323,8 +326,8 @@ export default function App() {
                 <span className="setting-value">Game Show Neon</span>
               </div>
               <div
-                className={`toggle ${soundEnabled ? 'active' : ''}`}
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`toggle ${soundsEnabled ? 'active' : ''}`}
+                onClick={toggleSounds}
               />
             </div>
             <div className="setting-card">
