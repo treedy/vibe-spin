@@ -126,6 +126,79 @@ body {
   cursor: pointer;
 }
 
+/* Hamburger button — hidden on desktop, shown on mobile */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.hamburger-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--primary);
+}
+
+.hamburger-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Mobile navigation menu — hidden on desktop via min-width query */
+@media (min-width: 641px) {
+  .mobile-nav {
+    display: none !important;
+  }
+}
+
+/* Mobile navigation menu */
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-dark);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  gap: 0.25rem;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link:focus-visible {
+  background: rgba(37, 123, 244, 0.1);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.mobile-nav-new-wheel {
+  color: var(--primary);
+  font-weight: 600;
+}
+
 /* Page Header */
 .page-header {
   padding: 2rem 2rem 0;
@@ -1067,6 +1140,14 @@ main {
 
   .nav-links {
     display: none;
+  }
+
+  .new-wheel-btn {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
   }
 
   .page-header {
