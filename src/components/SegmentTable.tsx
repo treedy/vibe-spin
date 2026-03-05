@@ -93,17 +93,16 @@ const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
   return (
     <div
       className={rowClasses}
-      draggable
-      onDragStart={() => onDragStart(index)}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onDragEnd={onDragEnd}
     >
       <button
         className="drag-handle"
         aria-label={`Drag to reorder ${segment.label}`}
         onKeyDown={handleKeyDown}
-        onMouseDown={(e) => e.preventDefault()}
+        draggable
+        onDragStart={() => onDragStart(index)}
+        onDragEnd={onDragEnd}
         tabIndex={0}
       >
         <GripVertical size={16} />
