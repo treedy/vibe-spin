@@ -27,6 +27,8 @@ describe('SegmentTable', () => {
         onUpdateColor={noop}
         onAddSegment={noop}
         onRemoveSegment={noop}
+        onReorderSegments={noop}
+        onResetWeights={noop}
       />
     );
     expect(screen.getByDisplayValue('Lunch Wheel')).toBeInTheDocument();
@@ -43,6 +45,8 @@ describe('SegmentTable', () => {
         onUpdateColor={noop}
         onAddSegment={noop}
         onRemoveSegment={noop}
+        onReorderSegments={noop}
+        onResetWeights={noop}
       />
     );
     const input = screen.getByDisplayValue('MySegment');
@@ -61,6 +65,8 @@ describe('SegmentTable', () => {
         onUpdateColor={noop}
         onAddSegment={noop}
         onRemoveSegment={noop}
+        onReorderSegments={noop}
+        onResetWeights={noop}
       />
     );
     expect(screen.getByDisplayValue('ALL CAPS')).toBeInTheDocument();
