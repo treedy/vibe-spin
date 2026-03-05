@@ -56,6 +56,7 @@ export default function App() {
     addSegment,
     removeSegment,
     resetWeights,
+    reorderSegments,
     setSegments,
   } = useWheels();
   const { history, addEntry, clearHistory } = useSpinHistory();
@@ -174,6 +175,7 @@ export default function App() {
   const handleUpdatePercentage = useCallback((i: number, v: number) => { setIsDirty(true); updatePercentage(i, v); }, [updatePercentage]);
   const handleUpdateLabel = useCallback((i: number, v: string) => { setIsDirty(true); updateLabel(i, v); }, [updateLabel]);
   const handleUpdateColor = useCallback((i: number, v: string) => { setIsDirty(true); updateColor(i, v); }, [updateColor]);
+  const handleReorderSegments = useCallback((from: number, to: number) => { setIsDirty(true); reorderSegments(from, to); }, [reorderSegments]);
   const handleResetWeights = useCallback(() => {
     prevSegmentsRef.current = segments;
     setIsDirty(true);
@@ -424,6 +426,7 @@ export default function App() {
             onUpdateColor={handleUpdateColor}
             onAddSegment={handleAddSegment}
             onRemoveSegment={handleRemoveSegment}
+            onReorderSegments={handleReorderSegments}
             onResetWeights={handleResetWeights}
             presets={PRESETS}
             onLoadPreset={loadPreset}

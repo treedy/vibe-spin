@@ -79,4 +79,44 @@ describe('useSegments', () => {
       });
     });
   });
+
+  describe('reorderSegments', () => {
+    it('moves a segment from one index to another', () => {
+      const { result } = renderHook(() => useSegments());
+      const firstLabel = result.current.segments[0]!.label;
+      const secondLabel = result.current.segments[1]!.label;
+      act(() => {
+        result.current.reorderSegments(0, 1);
+      });
+      expect(result.current.segments[0]!.label).toBe(secondLabel);
+      expect(result.current.segments[1]!.label).toBe(firstLabel);
+    });
+
+    it('preserves segment count after reorder', () => {
+      const { result } = renderHook(() => useSegments());
+      const count = result.current.segments.length;
+      act(() => {
+        result.current.reorderSegments(0, 2);
+      });
+      expect(result.current.segments.length).toBe(count);
+    });
+
+    it('is a no-op when fromIndex equals toIndex', () => {
+      const { result } = renderHook(() => useSegments());
+      const labelsBefore = result.current.segments.map(s => s.label);
+      act(() => {
+        result.current.reorderSegments(1, 1);
+      });
+      expect(result.current.segments.map(s => s.label)).toEqual(labelsBefore);
+    });
+
+    it('moves weights and colors with the segment', () => {
+      const { result } = renderHook(() => useSegments());
+      const firstColor = result.current.segments[0]!.color;
+      act(() => {
+        result.current.reorderSegments(0, 3);
+      });
+      expect(result.current.segments[3]!.color).toBe(firstColor);
+    });
+  });
 });

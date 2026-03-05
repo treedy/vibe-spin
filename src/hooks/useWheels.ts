@@ -240,6 +240,19 @@ export function useWheels() {
     updateSegments(prev => recalcPercentages(prev.map(s => ({ ...s, weight: 1 }))));
   }, [updateSegments]);
 
+  const reorderSegments = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      updateSegments(prev => {
+        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= prev.length || toIndex >= prev.length) return prev;
+        const newSegments = [...prev];
+        const [moved] = newSegments.splice(fromIndex, 1);
+        newSegments.splice(toIndex, 0, moved!);
+        return newSegments;
+      });
+    },
+    [updateSegments]
+  );
+
   return {
     wheels,
     activeId,
@@ -257,6 +270,7 @@ export function useWheels() {
     addSegment,
     removeSegment,
     resetWeights,
+    reorderSegments,
     setSegments,
   };
 }
