@@ -30,6 +30,27 @@ function saveSoundsEnabled(value: boolean): void {
   }
 }
 
+function loadCelebrationEnabled(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return true;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return parsed.celebrationEnabled !== false;
+  } catch {
+    return true;
+  }
+}
+
+function saveCelebrationEnabled(value: boolean): void {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const existing = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, celebrationEnabled: value }));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -68,6 +89,7 @@ function playWinSound(ctx: AudioContext): void {
 
 export function useAudio() {
   const [soundsEnabled, setSoundsEnabled] = useState<boolean>(loadSoundsEnabled);
+  const [celebrationEnabled, setCelebrationEnabled] = useState<boolean>(loadCelebrationEnabled);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const lastPlayRef = useRef<Partial<Record<SoundType, number>>>({});
 
@@ -112,11 +134,19 @@ export function useAudio() {
     });
   }, []);
 
+  const toggleCelebration = useCallback((): void => {
+    setCelebrationEnabled(prev => {
+      const next = !prev;
+      saveCelebrationEnabled(next);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       audioCtxRef.current?.close().catch(() => undefined);
     };
   }, []);
 
-  return { soundsEnabled, toggleSounds, play };
+  return { soundsEnabled, toggleSounds, celebrationEnabled, toggleCelebration, play };
 }
