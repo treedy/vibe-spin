@@ -13,6 +13,7 @@ import { PalettesPanel } from './components/PalettesPanel';
 import { PrivacyModal } from './components/PrivacyModal';
 import { TermsModal } from './components/TermsModal';
 import { FeedbackModal } from './components/FeedbackModal';
+import { SettingsModal } from './components/SettingsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
 import { useAudio } from './hooks/useAudio';
@@ -56,11 +57,11 @@ export default function App() {
   }, [winnerColor]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { soundsEnabled, toggleSounds, play } = useAudio();
-  const [celebrationEnabled, setCelebrationEnabled] = useState(true);
+  const { soundsEnabled, toggleSounds, celebrationEnabled, toggleCelebration, play } = useAudio();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -76,6 +77,7 @@ export default function App() {
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
   const termsTriggerRef = useRef<HTMLAnchorElement>(null);
   const feedbackTriggerRef = useRef<HTMLAnchorElement>(null);
+  const settingsTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!capReached) return;
@@ -303,7 +305,11 @@ export default function App() {
             <Share2 size={16} />
             Share
           </button>
-          <button className="header-btn">
+          <button
+            ref={settingsTriggerRef}
+            className="header-btn"
+            onClick={() => setSettingsOpen(true)}
+          >
             <Settings size={16} />
             Settings
           </button>
@@ -409,30 +415,6 @@ export default function App() {
             <span>Total Weight Sum: <strong>{totalWeight}</strong></span>
             <span>Total %: <strong>100.0%</strong></span>
           </div>
-
-          {/* Settings Row */}
-          <div className="settings-row">
-            <div className="setting-card">
-              <div className="setting-info">
-                <span className="setting-label">Sound Effects</span>
-                <span className="setting-value">Game Show Neon</span>
-              </div>
-              <div
-                className={`toggle ${soundsEnabled ? 'active' : ''}`}
-                onClick={toggleSounds}
-              />
-            </div>
-            <div className="setting-card">
-              <div className="setting-info">
-                <span className="setting-label">Celebration</span>
-                <span className="setting-value">Neon Confetti</span>
-              </div>
-              <div
-                className={`toggle ${celebrationEnabled ? 'active' : ''}`}
-                onClick={() => setCelebrationEnabled(!celebrationEnabled)}
-              />
-            </div>
-          </div>
         </div>
       </main>
 
@@ -499,6 +481,16 @@ export default function App() {
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
         triggerRef={feedbackTriggerRef}
+      />
+
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        triggerRef={settingsTriggerRef}
+        soundsEnabled={soundsEnabled}
+        onToggleSounds={toggleSounds}
+        celebrationEnabled={celebrationEnabled}
+        onToggleCelebration={toggleCelebration}
       />
 
       {showResetToast && (
