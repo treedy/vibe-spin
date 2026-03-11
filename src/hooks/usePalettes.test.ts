@@ -21,9 +21,8 @@ describe('usePalettes', () => {
 
   it('createPalette adds a new custom palette', () => {
     const { result } = renderHook(() => usePalettes());
-    let newPalette;
     act(() => {
-      newPalette = result.current.createPalette('My Custom', ['#ff0000', '#00ff00', '#0000ff']);
+      result.current.createPalette('My Custom', ['#ff0000', '#00ff00', '#0000ff']);
     });
     expect(result.current.customPalettes).toHaveLength(1);
     expect(result.current.customPalettes[0]!.name).toBe('My Custom');
@@ -33,9 +32,8 @@ describe('usePalettes', () => {
 
   it('deletePalette removes a custom palette', () => {
     const { result } = renderHook(() => usePalettes());
-    let newPalette;
     act(() => {
-      newPalette = result.current.createPalette('ToDelete', ['#fff']);
+      result.current.createPalette('ToDelete', ['#fff']);
     });
     expect(result.current.customPalettes).toHaveLength(1);
     

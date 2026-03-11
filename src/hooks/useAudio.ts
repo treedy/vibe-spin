@@ -9,6 +9,10 @@ const DEBOUNCE_MS: Record<SoundType, number> = {
   win: 1000,
 };
 
+type AudioWindow = Window & typeof globalThis & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
 function loadSoundsEnabled(): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -73,7 +77,8 @@ export function useAudio() {
 
   const getOrCreateContext = useCallback((): AudioContext | null => {
     if (typeof window === 'undefined') return null;
-    const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const audioWindow = window as AudioWindow;
+    const AudioCtxClass = audioWindow.AudioContext || audioWindow.webkitAudioContext;
     if (!AudioCtxClass) return null;
     if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
       audioCtxRef.current = new AudioCtxClass();

@@ -19,6 +19,7 @@ export function Modal({ isOpen, onClose, triggerRef, ariaLabel, children }: Moda
     if (!isOpen) return;
 
     const container = containerRef.current;
+    const triggerElement = triggerRef?.current;
     const firstFocusable = container?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
     firstFocusable?.focus();
 
@@ -49,7 +50,7 @@ export function Modal({ isOpen, onClose, triggerRef, ariaLabel, children }: Moda
     window.addEventListener('keydown', onKeyDown);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
-      triggerRef?.current?.focus();
+      triggerElement?.focus();
     };
   }, [isOpen, onClose, triggerRef]);
 
