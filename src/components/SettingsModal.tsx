@@ -35,7 +35,7 @@ export function SettingsModal({
       isOpen={isOpen}
       onClose={onClose}
       ariaLabel="Settings"
-      triggerRef={triggerRef}
+      {...(triggerRef ? { triggerRef } : {})}
     >
       <div className="privacy-modal-header">
         <h2 className="privacy-modal-title">Settings</h2>
