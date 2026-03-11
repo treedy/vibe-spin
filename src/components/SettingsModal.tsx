@@ -47,8 +47,7 @@ export function SettingsModal({
         <div className="settings-row">
           <div className="setting-card">
             <div className="setting-info">
-              <span className="setting-label">Sound Effects</span>
-              <span className="setting-value">Game Show Neon</span>
+              <span className="setting-value">Sound Effects</span>
             </div>
             <div
               className={`toggle ${soundsEnabled ? 'active' : ''}`}
@@ -62,8 +61,7 @@ export function SettingsModal({
           </div>
           <div className="setting-card">
             <div className="setting-info">
-              <span className="setting-label">Celebration</span>
-              <span className="setting-value">Neon Confetti</span>
+              <span className="setting-value">Celebration</span>
             </div>
             <div
               className={`toggle ${celebrationEnabled ? 'active' : ''}`}
