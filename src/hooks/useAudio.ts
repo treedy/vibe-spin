@@ -72,9 +72,11 @@ export function useAudio() {
   const lastPlayRef = useRef<Partial<Record<SoundType, number>>>({});
 
   const getOrCreateContext = useCallback((): AudioContext | null => {
-    if (typeof window === 'undefined' || !window.AudioContext) return null;
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext();
+    if (typeof window === 'undefined') return null;
+    const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtxClass) return null;
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+      audioCtxRef.current = new AudioCtxClass();
     }
     return audioCtxRef.current;
   }, []);

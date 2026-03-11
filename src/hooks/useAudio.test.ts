@@ -114,4 +114,37 @@ describe('useAudio', () => {
     expect(stored.otherSetting).toBe(42);
     expect(stored.soundsEnabled).toBe(false);
   });
+
+  it('recreates AudioContext when previous context is closed', () => {
+    // First constructor returns mock1
+    const mock1 = makeAudioContextMock();
+    const mock2 = makeAudioContextMock();
+
+    // Stub global to return mock1 initially
+    vi.stubGlobal('AudioContext', vi.fn(function() { return mock1; }));
+
+    const { result } = renderHook(() => useAudio());
+
+    // Mock Date.now so we can avoid debounce between plays
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1000);
+
+    // First play creates and uses mock1
+    act(() => { result.current.play('spin'); });
+    expect(mock1.createOscillator).toHaveBeenCalled();
+
+    // Simulate the context becoming closed
+    mock1.state = 'closed';
+    mock1.createOscillator.mockClear();
+
+    // Advance time beyond debounce window so second play isn't ignored
+    nowSpy.mockReturnValue(2000);
+
+    // Replace global constructor to return mock2 on next creation
+    vi.stubGlobal('AudioContext', vi.fn(function() { return mock2; }));
+
+    // Next play should recreate the AudioContext and use mock2
+    act(() => { result.current.play('spin'); });
+    expect(mock2.createOscillator).toHaveBeenCalled();
+    nowSpy.mockRestore();
+  });
 });
