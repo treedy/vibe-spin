@@ -116,6 +116,9 @@ export default function App() {
   const [currentSpinDurationMs, setCurrentSpinDurationMs] = useState(
     DEFAULT_SPIN_DURATION_MS
   );
+  const [spinKeyframes, setSpinKeyframes] = useState<
+    [number, number, number] | null
+  >(null);
   const prevSegmentsRef = useRef<Segment[] | null>(null);
   const copiedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -131,11 +134,13 @@ export default function App() {
   const segmentsRef = useRef(segments);
   const totalWeightRef = useRef(0);
   const activeWheelNameRef = useRef(activeWheel.name);
+  const rotationRef = useRef(0);
 
   isSpinningRef.current = isSpinning;
   isPendingRef.current = isPending;
   segmentsRef.current = segments;
   activeWheelNameRef.current = activeWheel.name;
+  rotationRef.current = rotation;
 
   useEffect(() => {
     if (!capReached) return;
@@ -343,14 +348,27 @@ export default function App() {
     const randomOffset = margin + Math.random() * (winnerAngle - margin * 2);
     const targetAngle = winnerStartAngle + randomOffset;
 
-    const extraSpins = 5 * 360;
-    const targetRotation = 270 - targetAngle;
-    setRotation((currentRotation) => {
-      const normalizedRotation = currentRotation % 360;
-      return (
-        currentRotation + extraSpins + (targetRotation - normalizedRotation)
-      );
-    });
+    // Physics-based spin: ramp-up (1500ms) → coast → ramp-down (1500ms)
+    // Max speed: 3 RPS = 1080 deg/s
+    // Phase 1 degrees: 0.5 * 1080 * 1.5 = 810°
+    // Phase 2 degrees: 1080 * max(0, T - 3)
+    // Phase 3 degrees: 0.5 * 1080 * 1.5 = 810°
+    const T = effectiveSpinDurationMs / 1000;
+    const rampDeg = 810;
+    const coastDeg = Math.max(0, 1080 * (T - 3));
+    const totalBaseDeg = rampDeg + coastDeg + rampDeg;
+    const desiredFinalAngle = (((270 - targetAngle) % 360) + 360) % 360;
+    const currentRot = rotationRef.current;
+    const baseEndAngle = (((currentRot + totalBaseDeg) % 360) + 360) % 360;
+    const angleDiff = (desiredFinalAngle - baseEndAngle + 360) % 360;
+    const finalRot = currentRot + totalBaseDeg + angleDiff;
+
+    setSpinKeyframes([
+      currentRot,
+      currentRot + rampDeg,
+      currentRot + rampDeg + coastDeg,
+    ]);
+    setRotation(finalRot);
 
     const winningSegment = currentSegments[winnerIndex];
     if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
@@ -370,6 +388,7 @@ export default function App() {
       }
       setIsSpinning(false);
       isSpinningRef.current = false;
+      setSpinKeyframes(null);
     }, effectiveSpinDurationMs);
   }, [addEntry, effectiveSpinDurationMs, play]);
 
@@ -531,6 +550,7 @@ export default function App() {
               spinDurationMs={
                 isSpinning ? currentSpinDurationMs : effectiveSpinDurationMs
               }
+              spinKeyframes={spinKeyframes}
               onSpin={spin}
               disabled={isSpinning || isPending}
             />

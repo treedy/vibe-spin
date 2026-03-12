@@ -43,30 +43,52 @@ const segments = [
 ];
 
 describe('Wheel', () => {
-  test('uses duration-based keyframes with a linear top-speed section', () => {
-    const { rerender } = render(
-      <Wheel segments={segments} rotation={0} spinDurationMs={4000} />
-    );
-
-    rerender(
+  test('uses provided spin keyframes and 3-phase timing during spin', () => {
+    render(
       <Wheel
         segments={segments}
-        rotation={1800}
+        rotation={2340}
         spinDurationMs={4000}
+        spinKeyframes={[0, 810, 1890]}
         isSpinning
       />
     );
 
     const motionWrapper = screen.getByTestId('wheel-motion');
     expect(JSON.parse(motionWrapper.dataset.animate ?? '{}')).toEqual({
-      rotate: [0, 324, 1476, 1800],
+      rotate: [0, 810, 1890, 2340],
     });
+
     const transition = JSON.parse(motionWrapper.dataset.transition ?? '{}');
     expect(transition.duration).toBe(4);
-    expect(transition.ease).toBe('linear');
     expect(transition.times[0]).toBe(0);
-    expect(transition.times[1]).toBeCloseTo(0.18, 5);
-    expect(transition.times[2]).toBeCloseTo(0.82, 5);
+    expect(transition.times[1]).toBeCloseTo(0.375, 5);
+    expect(transition.times[2]).toBeCloseTo(0.625, 5);
     expect(transition.times[3]).toBe(1);
+    expect(transition.ease).toEqual(['easeIn', 'linear', 'easeOut']);
+
+    // Coast phase should correspond to 3 rotations/sec (1080 deg/sec).
+    const coastDegrees = 1890 - 810;
+    const coastSeconds = 4 - 3;
+    expect(coastDegrees / coastSeconds).toBe(1080);
+  });
+
+  test('falls back to static rotation when not spinning', () => {
+    render(
+      <Wheel
+        segments={segments}
+        rotation={720}
+        spinDurationMs={4000}
+        spinKeyframes={[0, 810, 1890]}
+      />
+    );
+
+    const motionWrapper = screen.getByTestId('wheel-motion');
+    expect(JSON.parse(motionWrapper.dataset.animate ?? '{}')).toEqual({
+      rotate: 720,
+    });
+    expect(JSON.parse(motionWrapper.dataset.transition ?? '{}')).toEqual({
+      duration: 0,
+    });
   });
 });

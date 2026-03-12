@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Segment } from '../hooks/useSegments';
 
@@ -6,6 +6,7 @@ interface WheelProps {
   segments: Segment[];
   rotation: number;
   spinDurationMs: number;
+  spinKeyframes?: [number, number, number] | null;
   isSpinning?: boolean;
   onSpin?: () => void;
   disabled?: boolean;
@@ -23,7 +24,6 @@ const MAX_CHARS_WIDE = 12; // sliceAngle >= 90°
 const MAX_CHARS_MEDIUM = 9; // sliceAngle >= 45°
 const MAX_CHARS_NARROW = 7; // sliceAngle >= 30°
 const MAX_CHARS_TINY = 5; // sliceAngle >= MIN_ANGLE_FOR_LABEL
-const RAMP_PORTION = 0.18;
 
 function truncateLabel(label: string, sliceAngle: number): string {
   const maxChars =
@@ -38,8 +38,15 @@ function truncateLabel(label: string, sliceAngle: number): string {
 }
 
 export const Wheel: React.FC<WheelProps> = React.memo(
-  ({ segments, rotation, spinDurationMs, isSpinning, onSpin, disabled }) => {
-    const previousRotationRef = useRef(rotation);
+  ({
+    segments,
+    rotation,
+    spinDurationMs,
+    spinKeyframes,
+    isSpinning,
+    onSpin,
+    disabled,
+  }) => {
     const slices = useMemo(() => {
       let currentAngle = 0;
       return segments.map((segment) => {
@@ -81,37 +88,35 @@ export const Wheel: React.FC<WheelProps> = React.memo(
       });
     }, [segments]);
 
-    const animatedRotation = useMemo(() => {
-      const previousRotation = previousRotationRef.current;
-      const rotationDelta = rotation - previousRotation;
-
-      if (!isSpinning || rotationDelta === 0) {
-        return rotation;
+    const animateRotation = useMemo(() => {
+      if (isSpinning && spinKeyframes) {
+        return [
+          spinKeyframes[0],
+          spinKeyframes[1],
+          spinKeyframes[2],
+          rotation,
+        ] as [number, number, number, number];
       }
-
-      return [
-        previousRotation,
-        previousRotation + rotationDelta * RAMP_PORTION,
-        rotation - rotationDelta * RAMP_PORTION,
-        rotation,
-      ];
-    }, [isSpinning, rotation]);
+      return rotation;
+    }, [isSpinning, spinKeyframes, rotation]);
 
     const rotationTransition = useMemo(() => {
-      if (!isSpinning || animatedRotation === rotation) {
+      if (!isSpinning || !spinKeyframes) {
         return { duration: 0 };
       }
-
+      const T = spinDurationMs / 1000;
+      const t1 = 1.5 / T;
+      const t2 = (T - 1.5) / T;
       return {
-        duration: spinDurationMs / 1000,
-        ease: 'linear' as const,
-        times: [0, RAMP_PORTION, 1 - RAMP_PORTION, 1],
+        duration: T,
+        times: [0, t1, t2, 1] as [number, number, number, number],
+        ease: ['easeIn', 'linear', 'easeOut'] as [
+          'easeIn',
+          'linear',
+          'easeOut',
+        ],
       };
-    }, [animatedRotation, isSpinning, rotation, spinDurationMs]);
-
-    useEffect(() => {
-      previousRotationRef.current = rotation;
-    }, [rotation]);
+    }, [isSpinning, spinDurationMs, spinKeyframes]);
 
     return (
       <div className="wheel-wrapper">
@@ -125,7 +130,7 @@ export const Wheel: React.FC<WheelProps> = React.memo(
         {/* Wheel */}
         <motion.div
           initial={false}
-          animate={{ rotate: animatedRotation }}
+          animate={{ rotate: animateRotation }}
           transition={rotationTransition}
           style={{ width: '100%', height: '100%' }}
         >

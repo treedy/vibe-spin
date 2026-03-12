@@ -90,7 +90,7 @@ export function SettingsModal({
             <div className="setting-info">
               <span className="setting-value">Spin Duration</span>
               <span className="setting-label">
-                Leave blank to keep the classic{' '}
+                Leave blank for default{' '}
                 {(DEFAULT_SPIN_DURATION_MS / 1000).toFixed(1)}s spin
               </span>
             </div>
@@ -104,7 +104,7 @@ export function SettingsModal({
                 step={1}
                 inputMode="numeric"
                 aria-label="Spin Duration (seconds)"
-                placeholder={`${MIN_CUSTOM_SPIN_DURATION_MS / 1000}`}
+                placeholder={`${DEFAULT_SPIN_DURATION_MS / 1000}`}
                 value={spinDurationMs == null ? '' : spinDurationMs / 1000}
                 onChange={(event) => {
                   const nextValue = event.currentTarget.value;

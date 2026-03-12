@@ -1,5 +1,10 @@
 import React from 'react';
 import {
+  DEFAULT_SPIN_DURATION_MS,
+  MIN_CUSTOM_SPIN_DURATION_MS,
+  MAX_CUSTOM_SPIN_DURATION_MS,
+} from './hooks/useAudio';
+import {
   render,
   screen,
   fireEvent,
@@ -154,12 +159,14 @@ describe('Settings modal', () => {
     const spinDurationInput = screen.getByRole('spinbutton', {
       name: 'Spin Duration (seconds)',
     });
-    fireEvent.change(spinDurationInput, { target: { value: '4' } });
+    fireEvent.change(spinDurationInput, {
+      target: { value: String(MIN_CUSTOM_SPIN_DURATION_MS / 1000) },
+    });
 
     const stored = JSON.parse(
       localStorage.getItem('vibe-spin:settings') ?? '{}'
     ) as Record<string, unknown>;
-    expect(stored.spinDurationMs).toBe(4000);
+    expect(stored.spinDurationMs).toBe(MIN_CUSTOM_SPIN_DURATION_MS);
   });
 
   test('default spin timing remains unchanged until duration is customized', async () => {
@@ -171,7 +178,7 @@ describe('Settings modal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Spin the Wheel' }));
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1499);
+      await vi.advanceTimersByTimeAsync(DEFAULT_SPIN_DURATION_MS - 1);
     });
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
@@ -190,14 +197,16 @@ describe('Settings modal', () => {
     const spinDurationInput = screen.getByRole('spinbutton', {
       name: 'Spin Duration (seconds)',
     });
-    fireEvent.change(spinDurationInput, { target: { value: '4' } });
+    fireEvent.change(spinDurationInput, {
+      target: { value: String(MAX_CUSTOM_SPIN_DURATION_MS / 1000) },
+    });
 
     vi.useFakeTimers();
     vi.spyOn(Math, 'random').mockReturnValue(0);
     fireEvent.click(screen.getByRole('button', { name: 'Spin the Wheel' }));
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(3999);
+      await vi.advanceTimersByTimeAsync(MAX_CUSTOM_SPIN_DURATION_MS - 1);
     });
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 

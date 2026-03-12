@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 const STORAGE_KEY = 'vibe-spin:settings';
-export const DEFAULT_SPIN_DURATION_MS = 1500;
-export const MIN_CUSTOM_SPIN_DURATION_MS = 2000;
+export const DEFAULT_SPIN_DURATION_MS = 5000;
+export const MIN_CUSTOM_SPIN_DURATION_MS = 3000;
 export const MAX_CUSTOM_SPIN_DURATION_MS = 10000;
 
 export type SoundType = 'spin' | 'win';
