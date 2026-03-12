@@ -5,7 +5,6 @@ import { Trash2, Plus, RotateCcw, GripVertical } from 'lucide-react';
 interface SegmentRowProps {
   segment: Segment;
   index: number;
-  totalCount: number;
   isDragging: boolean;
   isDragOver: boolean;
   onUpdateWeight: (i: number, w: number) => void;
@@ -25,7 +24,6 @@ interface SegmentRowProps {
 const SegmentRow: React.FC<SegmentRowProps> = React.memo(({
   segment,
   index,
-  totalCount,
   isDragging,
   isDragOver,
   onUpdateWeight,
@@ -222,7 +220,6 @@ export const SegmentTable: React.FC<{
           key={s.id}
           segment={s}
           index={i}
-          totalCount={segments.length}
           isDragging={draggingIndex === i}
           isDragOver={dragOverIndex === i && draggingIndex !== i}
           onUpdateWeight={onUpdateWeight}

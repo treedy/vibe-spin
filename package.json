@@ -9,11 +9,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --ext .ts,.tsx --max-warnings=0",
+    "format": "prettier --write --ignore-unknown .",
     "preview": "vite preview",
     "test:unit": "vitest --run",
     "test:e2e": "playwright test",
     "test": "node scripts/run-tests.js",
-    "test:e2e-first": "TEST_ORDER=e2e-first node scripts/run-tests.js"
+    "test:e2e-first": "TEST_ORDER=e2e-first node scripts/run-tests.js",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +26,13 @@
   },
   "packageManager": "pnpm@10.30.3",
   "type": "commonjs",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{css,json,md,cjs,yml,yaml}": "prettier --write"
+  },
   "dependencies": {
     "framer-motion": "^12.35.2",
     "lucide-react": "^0.575.0",
@@ -30,6 +40,9 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@eslint/compat": "^2.0.3",
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@playwright/cli": "^0.1.1",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
@@ -37,8 +50,17 @@
     "@types/node": "^25.4.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "8.57.0",
+    "@typescript-eslint/parser": "8.57.0",
     "@vitejs/plugin-react": "^5.1.4",
+    "eslint": "9.39.4",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "globals": "^17.4.0",
+    "husky": "9.1.7",
     "jsdom": "^28.1.0",
+    "lint-staged": "16.3.3",
+    "prettier": "3.8.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"

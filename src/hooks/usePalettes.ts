@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { DEFAULT_PALETTES, type Palette } from '../data/palettes';
 
 const PALETTES_KEY = 'vibe-spin:palettes';
@@ -24,7 +24,7 @@ export function usePalettes() {
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(loadCustomPalettes);
 
   // All palettes: defaults + custom
-  const palettes = [...DEFAULT_PALETTES, ...customPalettes];
+  const palettes = useMemo(() => [...DEFAULT_PALETTES, ...customPalettes], [customPalettes]);
 
   // Persist custom palettes on change
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { nextSegmentColor } from '../utils/colorUtils';
 
 export interface Segment {
@@ -18,8 +18,6 @@ const DEFAULT_SEGMENTS: Segment[] = [
 
 export function useSegments() {
   const [segments, setSegments] = useState<Segment[]>(DEFAULT_SEGMENTS);
-
-  const totalWeight = useMemo(() => segments.reduce((sum, s) => sum + s.weight, 0), [segments]);
 
   const updateWeight = useCallback((index: number, weight: number) => {
     setSegments(prev => {
