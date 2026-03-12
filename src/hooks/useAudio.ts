@@ -2,8 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 const STORAGE_KEY = 'vibe-spin:settings';
 export const DEFAULT_SPIN_DURATION_MS = 1500;
-export const MIN_SPIN_DURATION_MS = 2000;
-export const MAX_SPIN_DURATION_MS = 10000;
+export const MIN_CUSTOM_SPIN_DURATION_MS = 2000;
+export const MAX_CUSTOM_SPIN_DURATION_MS = 10000;
 
 export type SoundType = 'spin' | 'win';
 
@@ -49,7 +49,10 @@ function saveSettingsPatch(patch: Partial<StoredSettings>): void {
 }
 
 function clampSpinDurationMs(value: number): number {
-  return Math.min(MAX_SPIN_DURATION_MS, Math.max(MIN_SPIN_DURATION_MS, value));
+  return Math.min(
+    MAX_CUSTOM_SPIN_DURATION_MS,
+    Math.max(MIN_CUSTOM_SPIN_DURATION_MS, value)
+  );
 }
 
 function loadSoundsEnabled(): boolean {
@@ -73,8 +76,8 @@ function loadSpinDurationMs(): number | null {
   if (
     typeof spinDurationMs !== 'number' ||
     !Number.isFinite(spinDurationMs) ||
-    spinDurationMs < MIN_SPIN_DURATION_MS ||
-    spinDurationMs > MAX_SPIN_DURATION_MS
+    spinDurationMs < MIN_CUSTOM_SPIN_DURATION_MS ||
+    spinDurationMs > MAX_CUSTOM_SPIN_DURATION_MS
   ) {
     return null;
   }

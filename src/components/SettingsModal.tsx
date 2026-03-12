@@ -3,8 +3,8 @@ import { X } from 'lucide-react';
 import { Modal } from './Modal';
 import {
   DEFAULT_SPIN_DURATION_MS,
-  MAX_SPIN_DURATION_MS,
-  MIN_SPIN_DURATION_MS,
+  MAX_CUSTOM_SPIN_DURATION_MS,
+  MIN_CUSTOM_SPIN_DURATION_MS,
 } from '../hooks/useAudio';
 
 interface SettingsModalProps {
@@ -99,12 +99,12 @@ export function SettingsModal({
               <input
                 className="setting-duration-input"
                 type="number"
-                min={MIN_SPIN_DURATION_MS / 1000}
-                max={MAX_SPIN_DURATION_MS / 1000}
+                min={MIN_CUSTOM_SPIN_DURATION_MS / 1000}
+                max={MAX_CUSTOM_SPIN_DURATION_MS / 1000}
                 step={1}
                 inputMode="numeric"
                 aria-label="Spin Duration (seconds)"
-                placeholder={`${MIN_SPIN_DURATION_MS / 1000}`}
+                placeholder={`${MIN_CUSTOM_SPIN_DURATION_MS / 1000}`}
                 value={spinDurationMs == null ? '' : spinDurationMs / 1000}
                 onChange={(event) => {
                   const nextValue = event.currentTarget.value;
