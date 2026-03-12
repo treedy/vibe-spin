@@ -1,4 +1,14 @@
-import React, { useState, useCallback, useTransition, useEffect, useRef, useMemo } from 'react';
+import React, {
+  lazy,
+  Suspense,
+  useState,
+  useCallback,
+  useTransition,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useMemo,
+} from 'react';
 import './styles.css';
 import type { Segment } from './hooks/useSegments';
 import { useWheels } from './hooks/useWheels';
@@ -6,21 +16,51 @@ import { useSpinHistory } from './hooks/useSpinHistory';
 import { usePalettes } from './hooks/usePalettes';
 import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
-import { HistoryDrawer } from './components/HistoryDrawer';
-import { WheelsDrawer } from './components/WheelsDrawer';
-import { TemplatesModal } from './components/TemplatesModal';
 import { PalettesPanel } from './components/PalettesPanel';
-import { PrivacyModal } from './components/PrivacyModal';
-import { TermsModal } from './components/TermsModal';
-import { FeedbackModal } from './components/FeedbackModal';
-import { SettingsModal } from './components/SettingsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
 import { useAudio } from './hooks/useAudio';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
+const COPIED_TOAST_DURATION = 2000;
+const SPIN_DURATION_MS = 1500;
 
+const HistoryDrawer = lazy(() =>
+  import('./components/HistoryDrawer').then((module) => ({
+    default: module.HistoryDrawer,
+  }))
+);
+const WheelsDrawer = lazy(() =>
+  import('./components/WheelsDrawer').then((module) => ({
+    default: module.WheelsDrawer,
+  }))
+);
+const TemplatesModal = lazy(() =>
+  import('./components/TemplatesModal').then((module) => ({
+    default: module.TemplatesModal,
+  }))
+);
+const PrivacyModal = lazy(() =>
+  import('./components/PrivacyModal').then((module) => ({
+    default: module.PrivacyModal,
+  }))
+);
+const TermsModal = lazy(() =>
+  import('./components/TermsModal').then((module) => ({
+    default: module.TermsModal,
+  }))
+);
+const FeedbackModal = lazy(() =>
+  import('./components/FeedbackModal').then((module) => ({
+    default: module.FeedbackModal,
+  }))
+);
+const SettingsModal = lazy(() =>
+  import('./components/SettingsModal').then((module) => ({
+    default: module.SettingsModal,
+  }))
+);
 
 export default function App() {
   const {
@@ -44,20 +84,20 @@ export default function App() {
     setSegments,
   } = useWheels();
   const { history, addEntry, clearHistory } = useSpinHistory();
-  const { palettes, createPalette, deletePalette, getColorsForSegments } = usePalettes();
+  const { palettes, createPalette, deletePalette, getColorsForSegments } =
+    usePalettes();
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
   const [winnerColor, setWinnerColor] = useState<string | null>(null);
-
-  const winnerStyle = useMemo((): React.CSSProperties | null => {
-    if (!winnerColor) return null;
-    return {
-      color: winnerColor,
-    } as React.CSSProperties;
-  }, [winnerColor]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { soundsEnabled, toggleSounds, celebrationEnabled, toggleCelebration, play } = useAudio();
+  const {
+    soundsEnabled,
+    toggleSounds,
+    celebrationEnabled,
+    toggleCelebration,
+    play,
+  } = useAudio();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -73,11 +113,25 @@ export default function App() {
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const [showResetToast, setShowResetToast] = useState(false);
   const prevSegmentsRef = useRef<Segment[] | null>(null);
+  const copiedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const resetToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
   const termsTriggerRef = useRef<HTMLAnchorElement>(null);
   const feedbackTriggerRef = useRef<HTMLAnchorElement>(null);
   const settingsTriggerRef = useRef<HTMLButtonElement>(null);
+  const isSpinningRef = useRef(isSpinning);
+  const isPendingRef = useRef(isPending);
+  const segmentsRef = useRef(segments);
+  const totalWeightRef = useRef(0);
+  const activeWheelNameRef = useRef(activeWheel.name);
+
+  isSpinningRef.current = isSpinning;
+  isPendingRef.current = isPending;
+  segmentsRef.current = segments;
+  activeWheelNameRef.current = activeWheel.name;
 
   useEffect(() => {
     if (!capReached) return;
@@ -111,55 +165,109 @@ export default function App() {
   const handleShare = useCallback(() => {
     const encoded = encodeWheel(activeWheel.name, segments);
     const url = `${window.location.origin}${window.location.pathname}?wheel=${encoded}`;
-    navigator.clipboard.writeText(url).then(() => {
+
+    const showCopiedToast = () => {
+      if (copiedToastTimerRef.current)
+        clearTimeout(copiedToastTimerRef.current);
       setShowCopiedToast(true);
-      setTimeout(() => setShowCopiedToast(false), 2000);
-    }).catch(() => {
-      setShowCopiedToast(true);
-      setTimeout(() => setShowCopiedToast(false), 2000);
-    });
+      copiedToastTimerRef.current = setTimeout(
+        () => setShowCopiedToast(false),
+        COPIED_TOAST_DURATION
+      );
+    };
+
+    navigator.clipboard
+      .writeText(url)
+      .then(showCopiedToast)
+      .catch(showCopiedToast);
   }, [activeWheel.name, segments]);
 
-  const recentSpins = history.slice(0, 4);
+  const recentSpins = useMemo(() => history.slice(0, 4), [history]);
+  const currentColors = useMemo(
+    () => segments.map((segment) => segment.color),
+    [segments]
+  );
 
-  const loadTemplate = useCallback((templateSegments: Segment[]) => {
-    startTransition(() => {
-      setSegments(templateSegments);
-      setWinner(null);
-      setWinnerColor(null);
-      setIsDirty(false);
-    });
-  }, [setSegments]);
+  const loadTemplate = useCallback(
+    (templateSegments: Segment[]) => {
+      startTransition(() => {
+        setSegments(templateSegments);
+        setWinner(null);
+        setWinnerColor(null);
+        setIsDirty(false);
+      });
+    },
+    [setSegments]
+  );
 
-  const handleApplyPalette = useCallback((paletteId: string) => {
-    const newColors = getColorsForSegments(paletteId, segments.length);
-    if (newColors.length === 0) return;
-    startTransition(() => {
-      const updatedSegments = segments.map((seg, i) => ({
-        ...seg,
-        color: newColors[i]!,
-      }));
-      setSegments(updatedSegments);
+  const handleApplyPalette = useCallback(
+    (paletteId: string) => {
+      const newColors = getColorsForSegments(paletteId, segments.length);
+      if (newColors.length === 0) return;
+      startTransition(() => {
+        const updatedSegments = segments.map((seg, i) => ({
+          ...seg,
+          color: newColors[i]!,
+        }));
+        setSegments(updatedSegments);
+        setIsDirty(true);
+      });
+    },
+    [segments, getColorsForSegments, setSegments]
+  );
+
+  const handleSavePalette = useCallback(
+    (name: string, colors: string[]) => {
+      createPalette(name, colors);
+    },
+    [createPalette]
+  );
+
+  const handleUpdateWeight = useCallback(
+    (i: number, v: number) => {
       setIsDirty(true);
-    });
-  }, [segments, getColorsForSegments, setSegments]);
-
-  const handleSavePalette = useCallback((name: string, colors: string[]) => {
-    createPalette(name, colors);
-  }, [createPalette]);
-
-  const handleUpdateWeight = useCallback((i: number, v: number) => { setIsDirty(true); updateWeight(i, v); }, [updateWeight]);
-  const handleUpdatePercentage = useCallback((i: number, v: number) => { setIsDirty(true); updatePercentage(i, v); }, [updatePercentage]);
-  const handleUpdateLabel = useCallback((i: number, v: string) => { setIsDirty(true); updateLabel(i, v); }, [updateLabel]);
-  const handleUpdateColor = useCallback((i: number, v: string) => { setIsDirty(true); updateColor(i, v); }, [updateColor]);
-  const handleReorderSegments = useCallback((from: number, to: number) => { setIsDirty(true); reorderSegments(from, to); }, [reorderSegments]);
+      updateWeight(i, v);
+    },
+    [updateWeight]
+  );
+  const handleUpdatePercentage = useCallback(
+    (i: number, v: number) => {
+      setIsDirty(true);
+      updatePercentage(i, v);
+    },
+    [updatePercentage]
+  );
+  const handleUpdateLabel = useCallback(
+    (i: number, v: string) => {
+      setIsDirty(true);
+      updateLabel(i, v);
+    },
+    [updateLabel]
+  );
+  const handleUpdateColor = useCallback(
+    (i: number, v: string) => {
+      setIsDirty(true);
+      updateColor(i, v);
+    },
+    [updateColor]
+  );
+  const handleReorderSegments = useCallback(
+    (from: number, to: number) => {
+      setIsDirty(true);
+      reorderSegments(from, to);
+    },
+    [reorderSegments]
+  );
   const handleResetWeights = useCallback(() => {
     prevSegmentsRef.current = segments;
     setIsDirty(true);
     resetWeights();
     if (resetToastTimerRef.current) clearTimeout(resetToastTimerRef.current);
     setShowResetToast(true);
-    resetToastTimerRef.current = setTimeout(() => setShowResetToast(false), RESET_TOAST_DURATION);
+    resetToastTimerRef.current = setTimeout(
+      () => setShowResetToast(false),
+      RESET_TOAST_DURATION
+    );
   }, [segments, resetWeights]);
 
   const handleUndoReset = useCallback(() => {
@@ -171,24 +279,48 @@ export default function App() {
     setShowResetToast(false);
   }, [setSegments]);
 
-  const handleAddSegment = useCallback(() => { setIsDirty(true); addSegment(); }, [addSegment]);
-  const handleRemoveSegment = useCallback((i: number) => { setIsDirty(true); removeSegment(i); }, [removeSegment]);
+  const handleAddSegment = useCallback(() => {
+    setIsDirty(true);
+    addSegment();
+  }, [addSegment]);
+  const handleRemoveSegment = useCallback(
+    (i: number) => {
+      setIsDirty(true);
+      removeSegment(i);
+    },
+    [removeSegment]
+  );
+  const totalWeight = useMemo(
+    () => segments.reduce((sum, s) => sum + s.weight, 0),
+    [segments]
+  );
+  totalWeightRef.current = totalWeight;
 
   const spin = useCallback(() => {
-    if (isSpinning) return;
+    if (isSpinningRef.current) return;
+
+    const currentSegments = segmentsRef.current;
+    const currentTotalWeight = totalWeightRef.current;
+    if (
+      currentSegments.length === 0 ||
+      !Number.isFinite(currentTotalWeight) ||
+      currentTotalWeight <= 0
+    ) {
+      return;
+    }
 
     setIsSpinning(true);
+    isSpinningRef.current = true;
     setWinner(null);
     setWinnerColor(null);
     play('spin');
-    
-    const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
-    const randomWeight = Math.random() * totalWeight;
+
+    const randomWeight = Math.random() * currentTotalWeight;
 
     let currentWeight = 0;
     let winnerIndex = 0;
-    for (let i = 0; i < segments.length; i++) {
-      currentWeight += segments[i]!.weight;
+    for (let i = 0; i < currentSegments.length; i++) {
+      currentWeight += currentSegments[i]!.weight;
       if (randomWeight <= currentWeight) {
         winnerIndex = i;
         break;
@@ -197,49 +329,74 @@ export default function App() {
 
     let winnerStartAngle = 0;
     for (let i = 0; i < winnerIndex; i++) {
-      winnerStartAngle += (segments[i]!.percentage / 100) * 360;
+      winnerStartAngle += (currentSegments[i]!.percentage / 100) * 360;
     }
-    const winnerAngle = (segments[winnerIndex]!.percentage / 100) * 360;
+
+    const winnerAngle = (currentSegments[winnerIndex]!.percentage / 100) * 360;
     const margin = winnerAngle * 0.1;
     const randomOffset = margin + Math.random() * (winnerAngle - margin * 2);
     const targetAngle = winnerStartAngle + randomOffset;
 
     const extraSpins = 5 * 360;
     const targetRotation = 270 - targetAngle;
-    const finalRotation = rotation + extraSpins + (targetRotation - (rotation % 360));
+    setRotation((currentRotation) => {
+      const normalizedRotation = currentRotation % 360;
+      return (
+        currentRotation + extraSpins + (targetRotation - normalizedRotation)
+      );
+    });
 
-    setRotation(finalRotation);
-
-    const winningSegment = segments[winnerIndex];
-    const wheelName = activeWheel.name;
-    setTimeout(() => {
+    const winningSegment = currentSegments[winnerIndex];
+    if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+    spinTimeoutRef.current = setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
         setWinnerColor(winningSegment.color);
-        addEntry({ label: winningSegment.label, color: winningSegment.color, wheelName });
+        addEntry({
+          label: winningSegment.label,
+          color: winningSegment.color,
+          wheelName: activeWheelNameRef.current,
+        });
         play('win');
       } else {
         setWinner(null);
         setWinnerColor(null);
       }
       setIsSpinning(false);
-    }, 1500);
-  }, [isSpinning, rotation, segments, addEntry, activeWheel.name, play]);
+      isSpinningRef.current = false;
+    }, SPIN_DURATION_MS);
+  }, [addEntry, play]);
+
+  const handleSpinHotkey = useEffectEvent((event: KeyboardEvent) => {
+    if (event.code !== 'Space') return;
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName;
+    if (tag && ['INPUT', 'TEXTAREA', 'BUTTON'].includes(tag)) return;
+    if (
+      target?.isContentEditable ||
+      isSpinningRef.current ||
+      isPendingRef.current
+    ) {
+      return;
+    }
+    event.preventDefault();
+    spin();
+  });
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.code !== 'Space') return;
-      const tag = (e.target as HTMLElement).tagName;
-      if (['INPUT', 'TEXTAREA', 'BUTTON'].includes(tag) || (e.target as HTMLElement).isContentEditable) return;
-      if (isSpinning || isPending) return;
-      e.preventDefault();
-      spin();
+    return () => {
+      if (copiedToastTimerRef.current)
+        clearTimeout(copiedToastTimerRef.current);
+      if (resetToastTimerRef.current) clearTimeout(resetToastTimerRef.current);
+      if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => handleSpinHotkey(event);
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [spin, isSpinning, isPending]);
-
-  const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
+  }, []);
 
   return (
     <div className="app">
@@ -247,19 +404,46 @@ export default function App() {
       <nav className="top-nav">
         <div className="nav-logo">
           <div className="logo-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2.5"
+            >
               <circle cx="12" cy="12" r="10" />
               <path d="M12 6v6l4 2" />
             </svg>
           </div>
-          <div className="logo-text">VIBE<span>SPIN</span></div>
+          <div className="logo-text">
+            VIBE<span>SPIN</span>
+          </div>
         </div>
         <div className="nav-links">
-          <a href="#" onClick={(e) => { e.preventDefault(); setWheelsOpen(true); }}>My Wheels</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); setTemplatesOpen(true); }}>Templates</a>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setWheelsOpen(true);
+            }}
+          >
+            My Wheels
+          </a>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setTemplatesOpen(true);
+            }}
+          >
+            Templates
+          </a>
         </div>
         <div className="nav-actions">
-          <button className="new-wheel-btn" onClick={createWheel}>New Wheel</button>
+          <button className="new-wheel-btn" onClick={createWheel}>
+            New Wheel
+          </button>
           <button className="avatar-btn">
             <User size={18} />
           </button>
@@ -268,7 +452,7 @@ export default function App() {
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
-            onClick={() => setMobileMenuOpen(o => !o)}
+            onClick={() => setMobileMenuOpen((o) => !o)}
           >
             {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -276,22 +460,35 @@ export default function App() {
       </nav>
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <nav id="mobile-nav" className="mobile-nav" aria-label="Mobile navigation">
+        <nav
+          id="mobile-nav"
+          className="mobile-nav"
+          aria-label="Mobile navigation"
+        >
           <button
             className="mobile-nav-link"
-            onClick={() => { setWheelsOpen(true); setMobileMenuOpen(false); }}
+            onClick={() => {
+              setWheelsOpen(true);
+              setMobileMenuOpen(false);
+            }}
           >
             My Wheels
           </button>
           <button
             className="mobile-nav-link"
-            onClick={() => { setTemplatesOpen(true); setMobileMenuOpen(false); }}
+            onClick={() => {
+              setTemplatesOpen(true);
+              setMobileMenuOpen(false);
+            }}
           >
             Templates
           </button>
           <button
             className="mobile-nav-link mobile-nav-new-wheel"
-            onClick={() => { createWheel(); setMobileMenuOpen(false); }}
+            onClick={() => {
+              createWheel();
+              setMobileMenuOpen(false);
+            }}
           >
             New Wheel
           </button>
@@ -337,10 +534,10 @@ export default function App() {
             Spin the Wheel
           </button>
           <span className="spin-hint">Press space or click to spin</span>
-          {winner && winnerStyle ? (
+          {winner && winnerColor ? (
             <div
               className="winner-overlay"
-              style={winnerStyle}
+              style={{ color: winnerColor }}
               role="status"
               aria-live="polite"
               aria-atomic="true"
@@ -358,13 +555,13 @@ export default function App() {
                 <input
                   className="wheel-name-input"
                   value={editNameValue}
-                  onChange={e => setEditNameValue(e.target.value)}
+                  onChange={(e) => setEditNameValue(e.target.value)}
                   onBlur={() => {
                     const name = editNameValue.trim() || activeWheel.name;
                     renameWheel(activeId, name);
                     setIsEditingName(false);
                   }}
-                  onKeyDown={e => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const name = editNameValue.trim() || activeWheel.name;
                       renameWheel(activeId, name);
@@ -388,12 +585,14 @@ export default function App() {
               )}
               <h2 className="segments-title">Segments</h2>
             </div>
-            <p className="segments-subtitle">Manage labels, colors and weights</p>
+            <p className="segments-subtitle">
+              Manage labels, colors and weights
+            </p>
           </div>
 
           <PalettesPanel
             palettes={palettes}
-            currentColors={segments.map(s => s.color)}
+            currentColors={currentColors}
             onApplyPalette={handleApplyPalette}
             onSavePalette={handleSavePalette}
             onDeletePalette={deletePalette}
@@ -412,8 +611,12 @@ export default function App() {
           />
 
           <div className="table-footer">
-            <span>Total Weight Sum: <strong>{totalWeight}</strong></span>
-            <span>Total %: <strong>100.0%</strong></span>
+            <span>
+              Total Weight Sum: <strong>{totalWeight}</strong>
+            </span>
+            <span>
+              Total %: <strong>100.0%</strong>
+            </span>
           </div>
         </div>
       </main>
@@ -422,20 +625,35 @@ export default function App() {
       <section className="recent-section">
         <div className="recent-header">
           <h3 className="recent-title">Recent Spins</h3>
-          <button className="view-history-link" onClick={() => setHistoryOpen(true)}>View Full History</button>
+          <button
+            className="view-history-link"
+            onClick={() => setHistoryOpen(true)}
+          >
+            View Full History
+          </button>
         </div>
         <div className="recent-grid">
           {recentSpins.length === 0 ? (
-            <p className="recent-empty">Spin the wheel to start tracking history.</p>
+            <p className="recent-empty">
+              Spin the wheel to start tracking history.
+            </p>
           ) : (
-            recentSpins.map(entry => (
+            recentSpins.map((entry) => (
               <div key={entry.id} className="session-card">
-                <div className="session-icon session-icon--color" style={{ background: entry.color + '26' }}>
-                  <div className="session-color-dot" style={{ background: entry.color }} />
+                <div
+                  className="session-icon session-icon--color"
+                  style={{ background: entry.color + '26' }}
+                >
+                  <div
+                    className="session-color-dot"
+                    style={{ background: entry.color }}
+                  />
                 </div>
                 <div className="session-info">
                   <span className="session-name">{entry.label}</span>
-                  <span className="session-time">{formatRelativeTime(entry.ts)}</span>
+                  <span className="session-time">
+                    {formatRelativeTime(entry.ts)}
+                  </span>
                 </div>
               </div>
             ))
@@ -443,60 +661,67 @@ export default function App() {
         </div>
       </section>
 
-      <TemplatesModal
-        isOpen={templatesOpen}
-        isDirty={isDirty}
-        onClose={() => setTemplatesOpen(false)}
-        onLoadTemplate={loadTemplate}
-      />
+      <Suspense fallback={null}>
+        <TemplatesModal
+          isOpen={templatesOpen}
+          isDirty={isDirty}
+          onClose={() => setTemplatesOpen(false)}
+          onLoadTemplate={loadTemplate}
+        />
 
-      <HistoryDrawer
-        isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        history={history}
-        onClearHistory={clearHistory}
-      />
+        <HistoryDrawer
+          isOpen={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          history={history}
+          onClearHistory={clearHistory}
+        />
 
-      <WheelsDrawer
-        isOpen={wheelsOpen}
-        onClose={() => setWheelsOpen(false)}
-        wheels={wheels}
-        activeId={activeId}
-        onSelect={setActiveId}
-        onDelete={deleteWheel}
-        onNew={() => { createWheel(); setWheelsOpen(false); }}
-      />
+        <WheelsDrawer
+          isOpen={wheelsOpen}
+          onClose={() => setWheelsOpen(false)}
+          wheels={wheels}
+          activeId={activeId}
+          onSelect={setActiveId}
+          onDelete={deleteWheel}
+          onNew={() => {
+            createWheel();
+            setWheelsOpen(false);
+          }}
+        />
 
-      <PrivacyModal
-        isOpen={privacyOpen}
-        onClose={() => setPrivacyOpen(false)}
-        triggerRef={privacyTriggerRef}
-      />
-      <TermsModal
-        isOpen={termsOpen}
-        onClose={() => setTermsOpen(false)}
-        triggerRef={termsTriggerRef}
-      />
-      <FeedbackModal
-        isOpen={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-        triggerRef={feedbackTriggerRef}
-      />
+        <PrivacyModal
+          isOpen={privacyOpen}
+          onClose={() => setPrivacyOpen(false)}
+          triggerRef={privacyTriggerRef}
+        />
+        <TermsModal
+          isOpen={termsOpen}
+          onClose={() => setTermsOpen(false)}
+          triggerRef={termsTriggerRef}
+        />
+        <FeedbackModal
+          isOpen={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          triggerRef={feedbackTriggerRef}
+        />
 
-      <SettingsModal
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        triggerRef={settingsTriggerRef}
-        soundsEnabled={soundsEnabled}
-        onToggleSounds={toggleSounds}
-        celebrationEnabled={celebrationEnabled}
-        onToggleCelebration={toggleCelebration}
-      />
+        <SettingsModal
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          triggerRef={settingsTriggerRef}
+          soundsEnabled={soundsEnabled}
+          onToggleSounds={toggleSounds}
+          celebrationEnabled={celebrationEnabled}
+          onToggleCelebration={toggleCelebration}
+        />
+      </Suspense>
 
       {showResetToast && (
         <div className="toast toast--info">
           Weights reset to 1.
-          <button className="toast-undo-btn" onClick={handleUndoReset}>Undo</button>
+          <button className="toast-undo-btn" onClick={handleUndoReset}>
+            Undo
+          </button>
         </div>
       )}
 
@@ -506,11 +731,7 @@ export default function App() {
         </div>
       )}
 
-      {showCopiedToast && (
-        <div className="toast toast--success">
-          Copied!
-        </div>
-      )}
+      {showCopiedToast && <div className="toast toast--success">Copied!</div>}
 
       {/* Footer */}
       <footer className="app-footer">
