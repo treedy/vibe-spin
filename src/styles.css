@@ -138,7 +138,9 @@ body {
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .hamburger-btn:hover {
@@ -180,7 +182,9 @@ body {
   font-weight: 500;
   font-family: inherit;
   border-radius: 8px;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -323,7 +327,9 @@ main {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 0 20px rgba(37, 123, 244, 0.3);
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
   z-index: 5;
 }
 
@@ -365,7 +371,9 @@ main {
   text-transform: uppercase;
   letter-spacing: 2px;
   box-shadow: 0 0 20px rgba(37, 123, 244, 0.4);
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
 }
 
 .spin-button:hover:not(:disabled) {
@@ -393,8 +401,12 @@ main {
 }
 
 @keyframes glow-pulse {
-  from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.6); }
-  to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.9); }
+  from {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  }
+  to {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+  }
 }
 
 /* Segments Panel */
@@ -487,7 +499,9 @@ main {
   font-family: inherit;
   padding: 0.2rem 0.4rem;
   width: 100%;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .label-input:hover {
@@ -609,7 +623,11 @@ main {
   width: 100%;
   padding: 0.9rem;
   margin-top: 0.5rem;
-  background: linear-gradient(90deg, rgba(37,123,244,0.10), rgba(0,242,255,0.04));
+  background: linear-gradient(
+    90deg,
+    rgba(37, 123, 244, 0.1),
+    rgba(0, 242, 255, 0.04)
+  );
   border: 1px solid rgba(37, 123, 244, 0.25);
   border-radius: 10px;
   color: var(--text-primary);
@@ -619,15 +637,23 @@ main {
   text-transform: uppercase;
   letter-spacing: 0.6px;
   cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s, background 0.12s;
-  box-shadow: 0 6px 18px rgba(37,123,244,0.06);
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s,
+    border-color 0.12s,
+    background 0.12s;
+  box-shadow: 0 6px 18px rgba(37, 123, 244, 0.06);
 }
 
 .add-segment-row:hover {
   transform: translateY(-2px);
   border-color: var(--primary);
-  background: linear-gradient(90deg, rgba(37,123,244,0.18), rgba(0,242,255,0.08));
-  box-shadow: 0 10px 30px rgba(37,123,244,0.14);
+  background: linear-gradient(
+    90deg,
+    rgba(37, 123, 244, 0.18),
+    rgba(0, 242, 255, 0.08)
+  );
+  box-shadow: 0 10px 30px rgba(37, 123, 244, 0.14);
   color: var(--text-primary);
 }
 
@@ -668,6 +694,11 @@ main {
   align-items: center;
 }
 
+.setting-card--stacked {
+  align-items: stretch;
+  gap: 0.85rem;
+}
+
 .setting-info {
   display: flex;
   flex-direction: column;
@@ -684,6 +715,49 @@ main {
 .setting-value {
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.setting-duration-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--card-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.setting-duration-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.setting-duration-input:focus {
+  outline: none;
+}
+
+.setting-duration-suffix {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Toggle Switch */
@@ -738,7 +812,6 @@ main {
   letter-spacing: 1px;
   margin: 0;
 }
-
 
 .recent-grid {
   display: grid;
@@ -838,7 +911,9 @@ main {
   background: var(--card-dark);
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(37, 123, 244, 0.15);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(37, 123, 244, 0.15);
 }
 
 .privacy-modal-header {
@@ -951,7 +1026,9 @@ main {
   font-family: inherit;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .history-clear-btn:hover {
@@ -970,7 +1047,9 @@ main {
   border-radius: 6px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .history-close-btn:hover {
@@ -1203,7 +1282,9 @@ main {
   background: var(--card-dark);
   border: 1px solid var(--border-color);
   border-radius: 18px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(37, 123, 244, 0.15);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(37, 123, 244, 0.15);
   z-index: 201;
   display: flex;
   flex-direction: column;
@@ -1247,7 +1328,9 @@ main {
   color: var(--text-secondary);
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .templates-close-btn:hover {
@@ -1288,7 +1371,9 @@ main {
   text-align: left;
   font-family: inherit;
   color: var(--text-primary);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .template-card:hover {
@@ -1491,7 +1576,9 @@ main {
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  transition: color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
   flex-shrink: 0;
 }
 
@@ -1516,7 +1603,9 @@ main {
   border-radius: 4px;
   border: 1px solid transparent;
   display: inline-block;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   letter-spacing: 0.5px;
 }
 
@@ -1621,8 +1710,14 @@ main {
 }
 
 @keyframes toast-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* Palettes Panel */
@@ -1635,7 +1730,11 @@ main {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.85rem;
-  background: linear-gradient(135deg, rgba(37,123,244,0.12), rgba(0,242,255,0.06));
+  background: linear-gradient(
+    135deg,
+    rgba(37, 123, 244, 0.12),
+    rgba(0, 242, 255, 0.06)
+  );
   border: 1px solid rgba(37, 123, 244, 0.3);
   border-radius: 8px;
   font-size: 0.75rem;
@@ -1645,12 +1744,19 @@ main {
   font-family: inherit;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
 }
 
 .palettes-trigger:hover {
   border-color: var(--primary);
-  background: linear-gradient(135deg, rgba(37,123,244,0.18), rgba(0,242,255,0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(37, 123, 244, 0.18),
+    rgba(0, 242, 255, 0.1)
+  );
   box-shadow: 0 0 12px rgba(37, 123, 244, 0.2);
 }
 
@@ -1679,7 +1785,9 @@ main {
   background: var(--card-dark);
   border: 1px solid rgba(37, 123, 244, 0.25);
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(37, 123, 244, 0.1);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(37, 123, 244, 0.1);
   z-index: 91;
 }
 
@@ -1723,7 +1831,9 @@ main {
   border-radius: 4px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .palettes-close-btn:hover {
@@ -1759,7 +1869,9 @@ main {
   width: 22px;
   height: 22px;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
@@ -1789,7 +1901,9 @@ main {
   letter-spacing: 0.4px;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .palettes-save-btn:hover {
@@ -1859,7 +1973,12 @@ main {
 
 .palettes-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(37, 123, 244, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(37, 123, 244, 0.2),
+    transparent
+  );
   margin: 0.5rem 1rem;
 }
 
@@ -1934,7 +2053,11 @@ main {
   color: var(--text-muted);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.12s, color 0.12s, background 0.12s, border-color 0.12s;
+  transition:
+    opacity 0.12s,
+    color 0.12s,
+    background 0.12s,
+    border-color 0.12s;
 }
 
 .palette-item:hover .palette-delete-btn {

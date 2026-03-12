@@ -19,12 +19,11 @@ import { Wheel } from './components/Wheel';
 import { PalettesPanel } from './components/PalettesPanel';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
-import { useAudio } from './hooks/useAudio';
+import { DEFAULT_SPIN_DURATION_MS, useAudio } from './hooks/useAudio';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
 const COPIED_TOAST_DURATION = 2000;
-const SPIN_DURATION_MS = 1500;
 
 const HistoryDrawer = lazy(() =>
   import('./components/HistoryDrawer').then((module) => ({
@@ -96,6 +95,8 @@ export default function App() {
     toggleSounds,
     celebrationEnabled,
     toggleCelebration,
+    spinDurationMs,
+    updateSpinDurationMs,
     play,
   } = useAudio();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -112,6 +113,9 @@ export default function App() {
   const [showCapToast, setShowCapToast] = useState(false);
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const [showResetToast, setShowResetToast] = useState(false);
+  const [currentSpinDurationMs, setCurrentSpinDurationMs] = useState(
+    DEFAULT_SPIN_DURATION_MS
+  );
   const prevSegmentsRef = useRef<Segment[] | null>(null);
   const copiedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -187,6 +191,7 @@ export default function App() {
     () => segments.map((segment) => segment.color),
     [segments]
   );
+  const effectiveSpinDurationMs = spinDurationMs ?? DEFAULT_SPIN_DURATION_MS;
 
   const loadTemplate = useCallback(
     (templateSegments: Segment[]) => {
@@ -314,6 +319,7 @@ export default function App() {
     setWinner(null);
     setWinnerColor(null);
     play('spin');
+    setCurrentSpinDurationMs(effectiveSpinDurationMs);
 
     const randomWeight = Math.random() * currentTotalWeight;
 
@@ -364,8 +370,8 @@ export default function App() {
       }
       setIsSpinning(false);
       isSpinningRef.current = false;
-    }, SPIN_DURATION_MS);
-  }, [addEntry, play]);
+    }, effectiveSpinDurationMs);
+  }, [addEntry, effectiveSpinDurationMs, play]);
 
   const handleSpinHotkey = useEffectEvent((event: KeyboardEvent) => {
     if (event.code !== 'Space') return;
@@ -522,6 +528,9 @@ export default function App() {
               segments={segments}
               rotation={rotation}
               isSpinning={isSpinning}
+              spinDurationMs={
+                isSpinning ? currentSpinDurationMs : effectiveSpinDurationMs
+              }
               onSpin={spin}
               disabled={isSpinning || isPending}
             />
@@ -713,6 +722,8 @@ export default function App() {
           onToggleSounds={toggleSounds}
           celebrationEnabled={celebrationEnabled}
           onToggleCelebration={toggleCelebration}
+          spinDurationMs={spinDurationMs}
+          onSpinDurationChange={updateSpinDurationMs}
         />
       </Suspense>
 
