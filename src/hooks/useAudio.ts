@@ -1,63 +1,103 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 const STORAGE_KEY = 'vibe-spin:settings';
+export const DEFAULT_SPIN_DURATION_MS = 5000;
+export const MIN_CUSTOM_SPIN_DURATION_MS = 3000;
+export const MAX_CUSTOM_SPIN_DURATION_MS = 10000;
 
 export type SoundType = 'spin' | 'win';
+
+type StoredSettings = {
+  soundsEnabled?: boolean;
+  celebrationEnabled?: boolean;
+  spinDurationMs?: number | null;
+};
 
 const DEBOUNCE_MS: Record<SoundType, number> = {
   spin: 500,
   win: 1000,
 };
 
-type AudioWindow = Window & typeof globalThis & {
-  webkitAudioContext?: typeof AudioContext;
-};
+type AudioWindow = Window &
+  typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+  };
 
-function loadSoundsEnabled(): boolean {
+function readSettings(): StoredSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return true;
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return parsed.soundsEnabled !== false;
+    return raw ? (JSON.parse(raw) as StoredSettings) : {};
   } catch {
-    return true;
+    return {};
   }
+}
+
+function saveSettings(settings: StoredSettings): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function saveSettingsPatch(patch: Partial<StoredSettings>): void {
+  const nextSettings = { ...readSettings(), ...patch };
+  if (patch.spinDurationMs == null) {
+    delete nextSettings.spinDurationMs;
+  }
+  saveSettings(nextSettings);
+}
+
+function clampSpinDurationMs(value: number): number {
+  return Math.min(
+    MAX_CUSTOM_SPIN_DURATION_MS,
+    Math.max(MIN_CUSTOM_SPIN_DURATION_MS, value)
+  );
+}
+
+function loadSoundsEnabled(): boolean {
+  return readSettings().soundsEnabled !== false;
 }
 
 function saveSoundsEnabled(value: boolean): void {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const existing = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, soundsEnabled: value }));
-  } catch {
-    // ignore storage errors
-  }
+  saveSettingsPatch({ soundsEnabled: value });
 }
 
 function loadCelebrationEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return true;
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return parsed.celebrationEnabled !== false;
-  } catch {
-    return true;
-  }
+  return readSettings().celebrationEnabled !== false;
 }
 
 function saveCelebrationEnabled(value: boolean): void {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const existing = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, celebrationEnabled: value }));
-  } catch {
-    // ignore storage errors
+  saveSettingsPatch({ celebrationEnabled: value });
+}
+
+function loadSpinDurationMs(): number | null {
+  const spinDurationMs = readSettings().spinDurationMs;
+  if (
+    typeof spinDurationMs !== 'number' ||
+    !Number.isFinite(spinDurationMs) ||
+    spinDurationMs < MIN_CUSTOM_SPIN_DURATION_MS ||
+    spinDurationMs > MAX_CUSTOM_SPIN_DURATION_MS
+  ) {
+    return null;
   }
+
+  return spinDurationMs;
+}
+
+function saveSpinDurationMs(value: number | null): void {
+  saveSettingsPatch({
+    spinDurationMs:
+      value == null ? null : clampSpinDurationMs(Math.round(value)),
+  });
 }
 
 function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 }
 
 function playSpinSound(ctx: AudioContext): void {
@@ -92,15 +132,22 @@ function playWinSound(ctx: AudioContext): void {
 }
 
 export function useAudio() {
-  const [soundsEnabled, setSoundsEnabled] = useState<boolean>(loadSoundsEnabled);
-  const [celebrationEnabled, setCelebrationEnabled] = useState<boolean>(loadCelebrationEnabled);
+  const [soundsEnabled, setSoundsEnabled] =
+    useState<boolean>(loadSoundsEnabled);
+  const [celebrationEnabled, setCelebrationEnabled] = useState<boolean>(
+    loadCelebrationEnabled
+  );
+  const [spinDurationMs, setSpinDurationMs] = useState<number | null>(
+    loadSpinDurationMs
+  );
   const audioCtxRef = useRef<AudioContext | null>(null);
   const lastPlayRef = useRef<Partial<Record<SoundType, number>>>({});
 
   const getOrCreateContext = useCallback((): AudioContext | null => {
     if (typeof window === 'undefined') return null;
     const audioWindow = window as AudioWindow;
-    const AudioCtxClass = audioWindow.AudioContext || audioWindow.webkitAudioContext;
+    const AudioCtxClass =
+      audioWindow.AudioContext || audioWindow.webkitAudioContext;
     if (!AudioCtxClass) return null;
     if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
       audioCtxRef.current = new AudioCtxClass();
@@ -108,31 +155,37 @@ export function useAudio() {
     return audioCtxRef.current;
   }, []);
 
-  const play = useCallback((sound: SoundType): void => {
-    if (!soundsEnabled || prefersReducedMotion()) return;
+  const play = useCallback(
+    (sound: SoundType): void => {
+      if (!soundsEnabled || prefersReducedMotion()) return;
 
-    const now = Date.now();
-    const last = lastPlayRef.current[sound] ?? 0;
-    if (now - last < DEBOUNCE_MS[sound]) return;
-    lastPlayRef.current[sound] = now;
+      const now = Date.now();
+      const last = lastPlayRef.current[sound] ?? 0;
+      if (now - last < DEBOUNCE_MS[sound]) return;
+      lastPlayRef.current[sound] = now;
 
-    const ctx = getOrCreateContext();
-    if (!ctx) return;
+      const ctx = getOrCreateContext();
+      if (!ctx) return;
 
-    const dispatch = () => {
-      if (sound === 'spin') playSpinSound(ctx);
-      else playWinSound(ctx);
-    };
+      const dispatch = () => {
+        if (sound === 'spin') playSpinSound(ctx);
+        else playWinSound(ctx);
+      };
 
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(dispatch).catch(() => undefined);
-    } else {
-      dispatch();
-    }
-  }, [soundsEnabled, getOrCreateContext]);
+      if (ctx.state === 'suspended') {
+        ctx
+          .resume()
+          .then(dispatch)
+          .catch(() => undefined);
+      } else {
+        dispatch();
+      }
+    },
+    [soundsEnabled, getOrCreateContext]
+  );
 
   const toggleSounds = useCallback((): void => {
-    setSoundsEnabled(prev => {
+    setSoundsEnabled((prev) => {
       const next = !prev;
       saveSoundsEnabled(next);
       return next;
@@ -140,10 +193,19 @@ export function useAudio() {
   }, []);
 
   const toggleCelebration = useCallback((): void => {
-    setCelebrationEnabled(prev => {
+    setCelebrationEnabled((prev) => {
       const next = !prev;
       saveCelebrationEnabled(next);
       return next;
+    });
+  }, []);
+
+  const updateSpinDurationMs = useCallback((value: number | null): void => {
+    setSpinDurationMs(() => {
+      const nextValue =
+        value == null ? null : clampSpinDurationMs(Math.round(value));
+      saveSpinDurationMs(nextValue);
+      return nextValue;
     });
   }, []);
 
@@ -153,5 +215,13 @@ export function useAudio() {
     };
   }, []);
 
-  return { soundsEnabled, toggleSounds, celebrationEnabled, toggleCelebration, play };
+  return {
+    soundsEnabled,
+    toggleSounds,
+    celebrationEnabled,
+    toggleCelebration,
+    spinDurationMs,
+    updateSpinDurationMs,
+    play,
+  };
 }

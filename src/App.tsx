@@ -19,12 +19,11 @@ import { Wheel } from './components/Wheel';
 import { PalettesPanel } from './components/PalettesPanel';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
-import { useAudio } from './hooks/useAudio';
+import { DEFAULT_SPIN_DURATION_MS, useAudio } from './hooks/useAudio';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
 const COPIED_TOAST_DURATION = 2000;
-const SPIN_DURATION_MS = 1500;
 
 const HistoryDrawer = lazy(() =>
   import('./components/HistoryDrawer').then((module) => ({
@@ -96,6 +95,8 @@ export default function App() {
     toggleSounds,
     celebrationEnabled,
     toggleCelebration,
+    spinDurationMs,
+    updateSpinDurationMs,
     play,
   } = useAudio();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -112,6 +113,12 @@ export default function App() {
   const [showCapToast, setShowCapToast] = useState(false);
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const [showResetToast, setShowResetToast] = useState(false);
+  const [currentSpinDurationMs, setCurrentSpinDurationMs] = useState(
+    DEFAULT_SPIN_DURATION_MS
+  );
+  const [spinKeyframes, setSpinKeyframes] = useState<
+    [number, number, number] | null
+  >(null);
   const prevSegmentsRef = useRef<Segment[] | null>(null);
   const copiedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -127,11 +134,13 @@ export default function App() {
   const segmentsRef = useRef(segments);
   const totalWeightRef = useRef(0);
   const activeWheelNameRef = useRef(activeWheel.name);
+  const rotationRef = useRef(0);
 
   isSpinningRef.current = isSpinning;
   isPendingRef.current = isPending;
   segmentsRef.current = segments;
   activeWheelNameRef.current = activeWheel.name;
+  rotationRef.current = rotation;
 
   useEffect(() => {
     if (!capReached) return;
@@ -187,6 +196,7 @@ export default function App() {
     () => segments.map((segment) => segment.color),
     [segments]
   );
+  const effectiveSpinDurationMs = spinDurationMs ?? DEFAULT_SPIN_DURATION_MS;
 
   const loadTemplate = useCallback(
     (templateSegments: Segment[]) => {
@@ -314,6 +324,7 @@ export default function App() {
     setWinner(null);
     setWinnerColor(null);
     play('spin');
+    setCurrentSpinDurationMs(effectiveSpinDurationMs);
 
     const randomWeight = Math.random() * currentTotalWeight;
 
@@ -337,14 +348,27 @@ export default function App() {
     const randomOffset = margin + Math.random() * (winnerAngle - margin * 2);
     const targetAngle = winnerStartAngle + randomOffset;
 
-    const extraSpins = 5 * 360;
-    const targetRotation = 270 - targetAngle;
-    setRotation((currentRotation) => {
-      const normalizedRotation = currentRotation % 360;
-      return (
-        currentRotation + extraSpins + (targetRotation - normalizedRotation)
-      );
-    });
+    // Physics-based spin: ramp-up (1500ms) → coast → ramp-down (1500ms)
+    // Max speed: 3 RPS = 1080 deg/s
+    // Phase 1 degrees: 0.5 * 1080 * 1.5 = 810°
+    // Phase 2 degrees: 1080 * max(0, T - 3)
+    // Phase 3 degrees: 0.5 * 1080 * 1.5 = 810°
+    const T = effectiveSpinDurationMs / 1000;
+    const rampDeg = 810;
+    const coastDeg = Math.max(0, 1080 * (T - 3));
+    const totalBaseDeg = rampDeg + coastDeg + rampDeg;
+    const desiredFinalAngle = (((270 - targetAngle) % 360) + 360) % 360;
+    const currentRot = rotationRef.current;
+    const baseEndAngle = (((currentRot + totalBaseDeg) % 360) + 360) % 360;
+    const angleDiff = (desiredFinalAngle - baseEndAngle + 360) % 360;
+    const finalRot = currentRot + totalBaseDeg + angleDiff;
+
+    setSpinKeyframes([
+      currentRot,
+      currentRot + rampDeg,
+      currentRot + rampDeg + coastDeg,
+    ]);
+    setRotation(finalRot);
 
     const winningSegment = currentSegments[winnerIndex];
     if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
@@ -364,8 +388,9 @@ export default function App() {
       }
       setIsSpinning(false);
       isSpinningRef.current = false;
-    }, SPIN_DURATION_MS);
-  }, [addEntry, play]);
+      setSpinKeyframes(null);
+    }, effectiveSpinDurationMs);
+  }, [addEntry, effectiveSpinDurationMs, play]);
 
   const handleSpinHotkey = useEffectEvent((event: KeyboardEvent) => {
     if (event.code !== 'Space') return;
@@ -522,6 +547,10 @@ export default function App() {
               segments={segments}
               rotation={rotation}
               isSpinning={isSpinning}
+              spinDurationMs={
+                isSpinning ? currentSpinDurationMs : effectiveSpinDurationMs
+              }
+              spinKeyframes={spinKeyframes}
               onSpin={spin}
               disabled={isSpinning || isPending}
             />
@@ -713,6 +742,8 @@ export default function App() {
           onToggleSounds={toggleSounds}
           celebrationEnabled={celebrationEnabled}
           onToggleCelebration={toggleCelebration}
+          spinDurationMs={spinDurationMs}
+          onSpinDurationChange={updateSpinDurationMs}
         />
       </Suspense>
 
