@@ -32,11 +32,16 @@ const itemVariants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: i * 0.025, type: 'spring' as const, stiffness: 350, damping: 26 },
+    transition: {
+      delay: i * 0.025,
+      type: 'spring' as const,
+      stiffness: 350,
+      damping: 26,
+    },
   }),
 };
 
-export function PalettesPanel({
+export const PalettesPanel = React.memo(function PalettesPanel({
   palettes,
   currentColors,
   onApplyPalette,
@@ -48,15 +53,18 @@ export function PalettesPanel({
   const [saveName, setSaveName] = useState('');
 
   const handleToggle = useCallback(() => {
-    setIsOpen(prev => !prev);
+    setIsOpen((prev) => !prev);
     setShowSaveForm(false);
     setSaveName('');
   }, []);
 
-  const handleApply = useCallback((id: string) => {
-    onApplyPalette(id);
-    setIsOpen(false);
-  }, [onApplyPalette]);
+  const handleApply = useCallback(
+    (id: string) => {
+      onApplyPalette(id);
+      setIsOpen(false);
+    },
+    [onApplyPalette]
+  );
 
   const handleSave = useCallback(() => {
     const name = saveName.trim() || `Custom ${Date.now()}`;
@@ -65,13 +73,16 @@ export function PalettesPanel({
     setSaveName('');
   }, [saveName, currentColors, onSavePalette]);
 
-  const handleDelete = useCallback((e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    onDeletePalette(id);
-  }, [onDeletePalette]);
+  const handleDelete = useCallback(
+    (e: React.MouseEvent, id: string) => {
+      e.stopPropagation();
+      onDeletePalette(id);
+    },
+    [onDeletePalette]
+  );
 
-  const defaultPalettes = palettes.filter(p => p.isDefault);
-  const customPalettes = palettes.filter(p => !p.isDefault);
+  const defaultPalettes = palettes.filter((p) => p.isDefault);
+  const customPalettes = palettes.filter((p) => !p.isDefault);
 
   return (
     <div className="palettes-panel">
@@ -131,7 +142,9 @@ export function PalettesPanel({
                     />
                   ))}
                   {currentColors.length > 8 && (
-                    <span className="palettes-more">+{currentColors.length - 8}</span>
+                    <span className="palettes-more">
+                      +{currentColors.length - 8}
+                    </span>
                   )}
                 </div>
               </div>
@@ -144,14 +157,17 @@ export function PalettesPanel({
                     className="palettes-save-input"
                     placeholder="Palette name..."
                     value={saveName}
-                    onChange={e => setSaveName(e.target.value)}
-                    onKeyDown={e => {
+                    onChange={(e) => setSaveName(e.target.value)}
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSave();
                       if (e.key === 'Escape') setShowSaveForm(false);
                     }}
                     autoFocus
                   />
-                  <button className="palettes-save-confirm" onClick={handleSave}>
+                  <button
+                    className="palettes-save-confirm"
+                    onClick={handleSave}
+                  >
                     <Check size={14} />
                   </button>
                   <button
@@ -225,7 +241,7 @@ export function PalettesPanel({
                           onClick={() => handleApply(palette.id)}
                           role="button"
                           tabIndex={0}
-                          onKeyDown={e => {
+                          onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
                               handleApply(palette.id);
@@ -241,11 +257,13 @@ export function PalettesPanel({
                               />
                             ))}
                           </div>
-                          <span className="palette-item-name">{palette.name}</span>
+                          <span className="palette-item-name">
+                            {palette.name}
+                          </span>
                         </div>
                         <button
                           className="palette-delete-btn"
-                          onClick={e => handleDelete(e, palette.id)}
+                          onClick={(e) => handleDelete(e, palette.id)}
                           aria-label={`Delete ${palette.name}`}
                         >
                           <Trash2 size={13} />
@@ -261,4 +279,6 @@ export function PalettesPanel({
       </AnimatePresence>
     </div>
   );
-}
+});
+
+PalettesPanel.displayName = 'PalettesPanel';

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useEffectEvent, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface ModalProps {
@@ -12,47 +12,58 @@ interface ModalProps {
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ isOpen, onClose, triggerRef, ariaLabel, children }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  triggerRef,
+  ariaLabel,
+  children,
+}: ModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const handleWindowKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    const container = containerRef.current;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+    const focusables =
+      container?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+    if (!focusables?.length) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  });
 
   useEffect(() => {
     if (!isOpen) return;
 
     const container = containerRef.current;
     const triggerElement = triggerRef?.current;
-    const firstFocusable = container?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    const firstFocusable =
+      container?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
     firstFocusable?.focus();
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (event.key !== 'Tab') return;
-      const focusables = container?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-      if (!focusables?.length) return;
-
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-
-      if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last?.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first?.focus();
-      }
-    };
+    const onKeyDown = (event: KeyboardEvent) => handleWindowKeyDown(event);
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       triggerElement?.focus();
     };
-  }, [isOpen, onClose, triggerRef]);
+  }, [isOpen, triggerRef]);
 
   return (
     <AnimatePresence>

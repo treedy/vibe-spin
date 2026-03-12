@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useEffectEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { TEMPLATES } from '../data/templates';
@@ -37,31 +37,45 @@ const cardVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.04, type: 'spring' as const, stiffness: 300, damping: 24 },
+    transition: {
+      delay: i * 0.04,
+      type: 'spring' as const,
+      stiffness: 300,
+      damping: 24,
+    },
   }),
 };
 
-export function TemplatesModal({ isOpen, isDirty, onClose, onLoadTemplate }: TemplatesModalProps) {
-  // Close on Escape key
+export function TemplatesModal({
+  isOpen,
+  isDirty,
+  onClose,
+  onLoadTemplate,
+}: TemplatesModalProps) {
+  const handleEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') onClose();
+  });
+
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const handler = (event: KeyboardEvent) => handleEscape(event);
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
-  const handleLoad = useCallback((segments: Segment[]) => {
-    if (isDirty) {
-      const ok = window.confirm(
-        'Loading this template will replace your current wheel. Continue?'
-      );
-      if (!ok) return;
-    }
-    onLoadTemplate(segments);
-    onClose();
-  }, [isDirty, onLoadTemplate, onClose]);
+  const handleLoad = useCallback(
+    (segments: Segment[]) => {
+      if (isDirty) {
+        const ok = window.confirm(
+          'Loading this template will replace your current wheel. Continue?'
+        );
+        if (!ok) return;
+      }
+      onLoadTemplate(segments);
+      onClose();
+    },
+    [isDirty, onLoadTemplate, onClose]
+  );
 
   return (
     <AnimatePresence>
@@ -92,7 +106,9 @@ export function TemplatesModal({ isOpen, isDirty, onClose, onLoadTemplate }: Tem
             <div className="templates-modal-header">
               <div>
                 <h2 className="templates-modal-title">Templates</h2>
-                <p className="templates-modal-subtitle">Choose a preset to load instantly</p>
+                <p className="templates-modal-subtitle">
+                  Choose a preset to load instantly
+                </p>
               </div>
               <button
                 className="templates-close-btn"
@@ -131,9 +147,12 @@ export function TemplatesModal({ isOpen, isDirty, onClose, onLoadTemplate }: Tem
 
                   <div className="template-card-body">
                     <span className="template-card-name">{template.name}</span>
-                    <span className="template-card-desc">{template.description}</span>
+                    <span className="template-card-desc">
+                      {template.description}
+                    </span>
                     <span className="template-card-count">
-                      {template.segments.length} segment{template.segments.length !== 1 ? 's' : ''}
+                      {template.segments.length} segment
+                      {template.segments.length !== 1 ? 's' : ''}
                     </span>
                   </div>
                 </motion.button>

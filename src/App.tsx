@@ -1,8 +1,11 @@
 import React, {
+  lazy,
+  Suspense,
   useState,
   useCallback,
   useTransition,
   useEffect,
+  useEffectEvent,
   useRef,
   useMemo,
 } from 'react';
@@ -13,20 +16,51 @@ import { useSpinHistory } from './hooks/useSpinHistory';
 import { usePalettes } from './hooks/usePalettes';
 import { SegmentTable } from './components/SegmentTable';
 import { Wheel } from './components/Wheel';
-import { HistoryDrawer } from './components/HistoryDrawer';
-import { WheelsDrawer } from './components/WheelsDrawer';
-import { TemplatesModal } from './components/TemplatesModal';
 import { PalettesPanel } from './components/PalettesPanel';
-import { PrivacyModal } from './components/PrivacyModal';
-import { TermsModal } from './components/TermsModal';
-import { FeedbackModal } from './components/FeedbackModal';
-import { SettingsModal } from './components/SettingsModal';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
 import { useAudio } from './hooks/useAudio';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
+const COPIED_TOAST_DURATION = 2000;
+const SPIN_DURATION_MS = 1500;
+
+const HistoryDrawer = lazy(() =>
+  import('./components/HistoryDrawer').then((module) => ({
+    default: module.HistoryDrawer,
+  }))
+);
+const WheelsDrawer = lazy(() =>
+  import('./components/WheelsDrawer').then((module) => ({
+    default: module.WheelsDrawer,
+  }))
+);
+const TemplatesModal = lazy(() =>
+  import('./components/TemplatesModal').then((module) => ({
+    default: module.TemplatesModal,
+  }))
+);
+const PrivacyModal = lazy(() =>
+  import('./components/PrivacyModal').then((module) => ({
+    default: module.PrivacyModal,
+  }))
+);
+const TermsModal = lazy(() =>
+  import('./components/TermsModal').then((module) => ({
+    default: module.TermsModal,
+  }))
+);
+const FeedbackModal = lazy(() =>
+  import('./components/FeedbackModal').then((module) => ({
+    default: module.FeedbackModal,
+  }))
+);
+const SettingsModal = lazy(() =>
+  import('./components/SettingsModal').then((module) => ({
+    default: module.SettingsModal,
+  }))
+);
 
 export default function App() {
   const {
@@ -55,13 +89,6 @@ export default function App() {
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState<string | null>(null);
   const [winnerColor, setWinnerColor] = useState<string | null>(null);
-
-  const winnerStyle = useMemo((): React.CSSProperties | null => {
-    if (!winnerColor) return null;
-    return {
-      color: winnerColor,
-    } as React.CSSProperties;
-  }, [winnerColor]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPending, startTransition] = useTransition();
   const {
@@ -86,12 +113,25 @@ export default function App() {
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const [showResetToast, setShowResetToast] = useState(false);
   const prevSegmentsRef = useRef<Segment[] | null>(null);
+  const copiedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const resetToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privacyTriggerRef = useRef<HTMLAnchorElement>(null);
   const termsTriggerRef = useRef<HTMLAnchorElement>(null);
   const feedbackTriggerRef = useRef<HTMLAnchorElement>(null);
   const settingsTriggerRef = useRef<HTMLButtonElement>(null);
-  const spinHandlerRef = useRef<() => void>(() => {});
+  const isSpinningRef = useRef(isSpinning);
+  const isPendingRef = useRef(isPending);
+  const segmentsRef = useRef(segments);
+  const totalWeightRef = useRef(0);
+  const activeWheelNameRef = useRef(activeWheel.name);
+
+  isSpinningRef.current = isSpinning;
+  isPendingRef.current = isPending;
+  segmentsRef.current = segments;
+  activeWheelNameRef.current = activeWheel.name;
 
   useEffect(() => {
     if (!capReached) return;
@@ -125,19 +165,28 @@ export default function App() {
   const handleShare = useCallback(() => {
     const encoded = encodeWheel(activeWheel.name, segments);
     const url = `${window.location.origin}${window.location.pathname}?wheel=${encoded}`;
+
+    const showCopiedToast = () => {
+      if (copiedToastTimerRef.current)
+        clearTimeout(copiedToastTimerRef.current);
+      setShowCopiedToast(true);
+      copiedToastTimerRef.current = setTimeout(
+        () => setShowCopiedToast(false),
+        COPIED_TOAST_DURATION
+      );
+    };
+
     navigator.clipboard
       .writeText(url)
-      .then(() => {
-        setShowCopiedToast(true);
-        setTimeout(() => setShowCopiedToast(false), 2000);
-      })
-      .catch(() => {
-        setShowCopiedToast(true);
-        setTimeout(() => setShowCopiedToast(false), 2000);
-      });
+      .then(showCopiedToast)
+      .catch(showCopiedToast);
   }, [activeWheel.name, segments]);
 
-  const recentSpins = history.slice(0, 4);
+  const recentSpins = useMemo(() => history.slice(0, 4), [history]);
+  const currentColors = useMemo(
+    () => segments.map((segment) => segment.color),
+    [segments]
+  );
 
   const loadTemplate = useCallback(
     (templateSegments: Segment[]) => {
@@ -245,21 +294,33 @@ export default function App() {
     () => segments.reduce((sum, s) => sum + s.weight, 0),
     [segments]
   );
+  totalWeightRef.current = totalWeight;
 
   const spin = useCallback(() => {
-    if (isSpinning) return;
+    if (isSpinningRef.current) return;
+
+    const currentSegments = segmentsRef.current;
+    const currentTotalWeight = totalWeightRef.current;
+    if (
+      currentSegments.length === 0 ||
+      !Number.isFinite(currentTotalWeight) ||
+      currentTotalWeight <= 0
+    ) {
+      return;
+    }
 
     setIsSpinning(true);
+    isSpinningRef.current = true;
     setWinner(null);
     setWinnerColor(null);
     play('spin');
 
-    const randomWeight = Math.random() * totalWeight;
+    const randomWeight = Math.random() * currentTotalWeight;
 
     let currentWeight = 0;
     let winnerIndex = 0;
-    for (let i = 0; i < segments.length; i++) {
-      currentWeight += segments[i]!.weight;
+    for (let i = 0; i < currentSegments.length; i++) {
+      currentWeight += currentSegments[i]!.weight;
       if (randomWeight <= currentWeight) {
         winnerIndex = i;
         break;
@@ -268,31 +329,33 @@ export default function App() {
 
     let winnerStartAngle = 0;
     for (let i = 0; i < winnerIndex; i++) {
-      winnerStartAngle += (segments[i]!.percentage / 100) * 360;
+      winnerStartAngle += (currentSegments[i]!.percentage / 100) * 360;
     }
 
-    const winnerAngle = (segments[winnerIndex]!.percentage / 100) * 360;
+    const winnerAngle = (currentSegments[winnerIndex]!.percentage / 100) * 360;
     const margin = winnerAngle * 0.1;
     const randomOffset = margin + Math.random() * (winnerAngle - margin * 2);
     const targetAngle = winnerStartAngle + randomOffset;
 
     const extraSpins = 5 * 360;
     const targetRotation = 270 - targetAngle;
-    const finalRotation =
-      rotation + extraSpins + (targetRotation - (rotation % 360));
+    setRotation((currentRotation) => {
+      const normalizedRotation = currentRotation % 360;
+      return (
+        currentRotation + extraSpins + (targetRotation - normalizedRotation)
+      );
+    });
 
-    setRotation(finalRotation);
-
-    const winningSegment = segments[winnerIndex];
-    const wheelName = activeWheel.name;
-    setTimeout(() => {
+    const winningSegment = currentSegments[winnerIndex];
+    if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+    spinTimeoutRef.current = setTimeout(() => {
       if (winningSegment) {
         setWinner(winningSegment.label);
         setWinnerColor(winningSegment.color);
         addEntry({
           label: winningSegment.label,
           color: winningSegment.color,
-          wheelName,
+          wheelName: activeWheelNameRef.current,
         });
         play('win');
       } else {
@@ -300,37 +363,40 @@ export default function App() {
         setWinnerColor(null);
       }
       setIsSpinning(false);
-    }, 1500);
-  }, [
-    isSpinning,
-    rotation,
-    totalWeight,
-    segments,
-    addEntry,
-    activeWheel.name,
-    play,
-  ]);
+      isSpinningRef.current = false;
+    }, SPIN_DURATION_MS);
+  }, [addEntry, play]);
 
-  // Update spin handler ref whenever spin changes
+  const handleSpinHotkey = useEffectEvent((event: KeyboardEvent) => {
+    if (event.code !== 'Space') return;
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName;
+    if (tag && ['INPUT', 'TEXTAREA', 'BUTTON'].includes(tag)) return;
+    if (
+      target?.isContentEditable ||
+      isSpinningRef.current ||
+      isPendingRef.current
+    ) {
+      return;
+    }
+    event.preventDefault();
+    spin();
+  });
+
   useEffect(() => {
-    spinHandlerRef.current = spin;
-  }, [spin]);
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.code !== 'Space') return;
-      const tag = (e.target as HTMLElement).tagName;
-      if (
-        ['INPUT', 'TEXTAREA', 'BUTTON'].includes(tag) ||
-        (e.target as HTMLElement).isContentEditable
-      )
-        return;
-      if (isSpinning || isPending) return;
-      e.preventDefault();
-      spinHandlerRef.current();
+    return () => {
+      if (copiedToastTimerRef.current)
+        clearTimeout(copiedToastTimerRef.current);
+      if (resetToastTimerRef.current) clearTimeout(resetToastTimerRef.current);
+      if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => handleSpinHotkey(event);
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isSpinning, isPending]);
+  }, []);
 
   return (
     <div className="app">
@@ -468,10 +534,10 @@ export default function App() {
             Spin the Wheel
           </button>
           <span className="spin-hint">Press space or click to spin</span>
-          {winner && winnerStyle ? (
+          {winner && winnerColor ? (
             <div
               className="winner-overlay"
-              style={winnerStyle}
+              style={{ color: winnerColor }}
               role="status"
               aria-live="polite"
               aria-atomic="true"
@@ -526,7 +592,7 @@ export default function App() {
 
           <PalettesPanel
             palettes={palettes}
-            currentColors={segments.map((s) => s.color)}
+            currentColors={currentColors}
             onApplyPalette={handleApplyPalette}
             onSavePalette={handleSavePalette}
             onDeletePalette={deletePalette}
@@ -595,58 +661,60 @@ export default function App() {
         </div>
       </section>
 
-      <TemplatesModal
-        isOpen={templatesOpen}
-        isDirty={isDirty}
-        onClose={() => setTemplatesOpen(false)}
-        onLoadTemplate={loadTemplate}
-      />
+      <Suspense fallback={null}>
+        <TemplatesModal
+          isOpen={templatesOpen}
+          isDirty={isDirty}
+          onClose={() => setTemplatesOpen(false)}
+          onLoadTemplate={loadTemplate}
+        />
 
-      <HistoryDrawer
-        isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        history={history}
-        onClearHistory={clearHistory}
-      />
+        <HistoryDrawer
+          isOpen={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          history={history}
+          onClearHistory={clearHistory}
+        />
 
-      <WheelsDrawer
-        isOpen={wheelsOpen}
-        onClose={() => setWheelsOpen(false)}
-        wheels={wheels}
-        activeId={activeId}
-        onSelect={setActiveId}
-        onDelete={deleteWheel}
-        onNew={() => {
-          createWheel();
-          setWheelsOpen(false);
-        }}
-      />
+        <WheelsDrawer
+          isOpen={wheelsOpen}
+          onClose={() => setWheelsOpen(false)}
+          wheels={wheels}
+          activeId={activeId}
+          onSelect={setActiveId}
+          onDelete={deleteWheel}
+          onNew={() => {
+            createWheel();
+            setWheelsOpen(false);
+          }}
+        />
 
-      <PrivacyModal
-        isOpen={privacyOpen}
-        onClose={() => setPrivacyOpen(false)}
-        triggerRef={privacyTriggerRef}
-      />
-      <TermsModal
-        isOpen={termsOpen}
-        onClose={() => setTermsOpen(false)}
-        triggerRef={termsTriggerRef}
-      />
-      <FeedbackModal
-        isOpen={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-        triggerRef={feedbackTriggerRef}
-      />
+        <PrivacyModal
+          isOpen={privacyOpen}
+          onClose={() => setPrivacyOpen(false)}
+          triggerRef={privacyTriggerRef}
+        />
+        <TermsModal
+          isOpen={termsOpen}
+          onClose={() => setTermsOpen(false)}
+          triggerRef={termsTriggerRef}
+        />
+        <FeedbackModal
+          isOpen={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          triggerRef={feedbackTriggerRef}
+        />
 
-      <SettingsModal
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        triggerRef={settingsTriggerRef}
-        soundsEnabled={soundsEnabled}
-        onToggleSounds={toggleSounds}
-        celebrationEnabled={celebrationEnabled}
-        onToggleCelebration={toggleCelebration}
-      />
+        <SettingsModal
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          triggerRef={settingsTriggerRef}
+          soundsEnabled={soundsEnabled}
+          onToggleSounds={toggleSounds}
+          celebrationEnabled={celebrationEnabled}
+          onToggleCelebration={toggleCelebration}
+        />
+      </Suspense>
 
       {showResetToast && (
         <div className="toast toast--info">

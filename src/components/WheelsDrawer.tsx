@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useEffectEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Layers } from 'lucide-react';
 import type { WheelConfig } from '../hooks/useWheels';
@@ -39,14 +39,16 @@ export function WheelsDrawer({
   onDelete,
   onNew,
 }: WheelsDrawerProps) {
+  const handleEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') onClose();
+  });
+
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const handler = (event: KeyboardEvent) => handleEscape(event);
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
@@ -88,7 +90,11 @@ export function WheelsDrawer({
                 <button className="wheels-new-btn" onClick={onNew}>
                   + New
                 </button>
-                <button className="history-close-btn" onClick={onClose} aria-label="Close wheels">
+                <button
+                  className="history-close-btn"
+                  onClick={onClose}
+                  aria-label="Close wheels"
+                >
                   <X size={18} />
                 </button>
               </div>
@@ -104,7 +110,7 @@ export function WheelsDrawer({
               initial="hidden"
               animate="visible"
             >
-              {wheels.map(wheel => (
+              {wheels.map((wheel) => (
                 <motion.div
                   key={wheel.id}
                   className={`wheels-item${wheel.id === activeId ? ' wheels-item--active' : ''}`}
@@ -112,7 +118,7 @@ export function WheelsDrawer({
                   onClick={() => handleSelect(wheel.id)}
                 >
                   <div className="wheels-swatches">
-                    {wheel.segments.slice(0, 6).map(seg => (
+                    {wheel.segments.slice(0, 6).map((seg) => (
                       <div
                         key={seg.id}
                         className="wheels-swatch"
@@ -123,7 +129,8 @@ export function WheelsDrawer({
                   <div className="wheels-item-info">
                     <span className="wheels-item-name">{wheel.name}</span>
                     <span className="wheels-item-meta">
-                      {wheel.segments.length} segment{wheel.segments.length !== 1 ? 's' : ''}
+                      {wheel.segments.length} segment
+                      {wheel.segments.length !== 1 ? 's' : ''}
                     </span>
                   </div>
                   {wheel.id === activeId && (
@@ -131,7 +138,7 @@ export function WheelsDrawer({
                   )}
                   <button
                     className="wheels-item-delete"
-                    onClick={e => handleDelete(e, wheel.id, wheel.name)}
+                    onClick={(e) => handleDelete(e, wheel.id, wheel.name)}
                     aria-label={`Delete ${wheel.name}`}
                   >
                     <Trash2 size={14} />
