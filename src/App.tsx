@@ -20,6 +20,8 @@ import { PalettesPanel } from './components/PalettesPanel';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
 import { DEFAULT_SPIN_DURATION_MS, useAudio } from './hooks/useAudio';
+import { useCelebration } from './hooks/useCelebration';
+import { Celebration } from './components/Celebration';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
@@ -99,6 +101,8 @@ export default function App() {
     updateSpinDurationMs,
     play,
   } = useAudio();
+  const { triggerCelebration, isCelebrating } =
+    useCelebration(celebrationEnabled);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [wheelsOpen, setWheelsOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -382,6 +386,7 @@ export default function App() {
           wheelName: activeWheelNameRef.current,
         });
         play('win');
+        triggerCelebration();
       } else {
         setWinner(null);
         setWinnerColor(null);
@@ -390,7 +395,7 @@ export default function App() {
       isSpinningRef.current = false;
       setSpinKeyframes(null);
     }, effectiveSpinDurationMs);
-  }, [addEntry, effectiveSpinDurationMs, play]);
+  }, [addEntry, effectiveSpinDurationMs, play, triggerCelebration]);
 
   const handleSpinHotkey = useEffectEvent((event: KeyboardEvent) => {
     if (event.code !== 'Space') return;
@@ -800,6 +805,8 @@ export default function App() {
           </a>
         </div>
       </footer>
+
+      <Celebration isCelebrating={isCelebrating} />
     </div>
   );
 }
