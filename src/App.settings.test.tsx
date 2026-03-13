@@ -61,7 +61,7 @@ describe('Settings modal', () => {
     });
   });
 
-  test('closes on backdrop click', async () => {
+  test('backdrop click does NOT close the Settings modal', async () => {
     const { container } = render(<App />);
 
     openSettingsModal();
@@ -73,7 +73,7 @@ describe('Settings modal', () => {
     await waitFor(() => {
       expect(
         screen.queryByRole('dialog', { name: 'Settings' })
-      ).not.toBeInTheDocument();
+      ).toBeInTheDocument();
     });
   });
 

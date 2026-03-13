@@ -7,6 +7,7 @@ interface ModalProps {
   triggerRef?: React.RefObject<HTMLElement | null>;
   ariaLabel: string;
   children: React.ReactNode;
+  disableBackdropClose?: boolean;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -18,6 +19,7 @@ export function Modal({
   triggerRef,
   ariaLabel,
   children,
+  disableBackdropClose = false,
 }: ModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const handleWindowKeyDown = useEffectEvent((event: KeyboardEvent) => {
@@ -73,7 +75,7 @@ export function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={disableBackdropClose ? undefined : onClose}
         >
           <motion.div
             ref={containerRef}
