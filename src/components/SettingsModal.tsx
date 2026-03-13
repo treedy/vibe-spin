@@ -44,6 +44,7 @@ export function SettingsModal({
       isOpen={isOpen}
       onClose={onClose}
       ariaLabel="Settings"
+      disableBackdropClose
       {...(triggerRef ? { triggerRef } : {})}
     >
       <div className="privacy-modal-header">
