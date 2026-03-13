@@ -257,7 +257,7 @@ describe('Settings modal', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Export All' }));
 
       expect(createObjectURL).toHaveBeenCalledOnce();
-      const blob: Blob = createObjectURL.mock.calls[0][0] as Blob;
+      const blob: Blob = createObjectURL.mock.calls[0]![0] as Blob;
       expect(blob.type).toBe('application/json');
       expect(clickSpy).toHaveBeenCalledOnce();
       expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-export-url');
@@ -296,7 +296,7 @@ describe('Settings modal', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Export All' }));
 
       expect(blobs).toHaveLength(1);
-      const text = await blobs[0].text();
+      const text = await blobs[0]!.text();
       const payload = JSON.parse(text) as Record<string, unknown>;
 
       expect(payload.version).toBe(1);
@@ -328,7 +328,7 @@ describe('Settings modal', () => {
 
       expect(anchors).toHaveLength(1);
       const date = new Date().toISOString().slice(0, 10);
-      expect(anchors[0].download).toBe(`vibe-spin-export-${date}.json`);
+      expect(anchors[0]!.download).toBe(`vibe-spin-export-${date}.json`);
     });
   });
 
