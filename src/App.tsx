@@ -22,7 +22,8 @@ import { encodeWheel, decodeWheel } from './utils/permalink';
 import { DEFAULT_SPIN_DURATION_MS, useAudio } from './hooks/useAudio';
 import { useCelebration } from './hooks/useCelebration';
 import { Celebration } from './components/Celebration';
-import { Share2, Settings, User, Menu, X } from 'lucide-react';
+import { Share2, Settings, User, Menu, X, EyeOff, Eye } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const RESET_TOAST_DURATION = 5000;
 const COPIED_TOAST_DURATION = 2000;
@@ -99,6 +100,8 @@ export default function App() {
     toggleCelebration,
     spinDurationMs,
     updateSpinDurationMs,
+    isSegmentsEditorVisible,
+    toggleSegmentsEditor,
     play,
   } = useAudio();
   const { triggerCelebration, isCelebrating } =
@@ -618,40 +621,95 @@ export default function App() {
                 </span>
               )}
               <h2 className="segments-title">Segments</h2>
+              <button
+                className="segments-toggle-btn"
+                onClick={toggleSegmentsEditor}
+                aria-label={
+                  isSegmentsEditorVisible
+                    ? 'Hide segments editor'
+                    : 'Show segments editor'
+                }
+                aria-expanded={isSegmentsEditorVisible}
+                title={
+                  isSegmentsEditorVisible
+                    ? 'Hide segments editor'
+                    : 'Show segments editor'
+                }
+              >
+                {isSegmentsEditorVisible ? (
+                  <EyeOff size={16} />
+                ) : (
+                  <Eye size={16} />
+                )}
+              </button>
             </div>
-            <p className="segments-subtitle">
-              Manage labels, colors and weights
-            </p>
+            <AnimatePresence>
+              {isSegmentsEditorVisible && (
+                <motion.p
+                  className="segments-subtitle"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  Manage labels, colors and weights
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
-          <PalettesPanel
-            palettes={palettes}
-            currentColors={currentColors}
-            onApplyPalette={handleApplyPalette}
-            onSavePalette={handleSavePalette}
-            onDeletePalette={deletePalette}
-          />
+          <AnimatePresence initial={false}>
+            {isSegmentsEditorVisible && (
+              <motion.div
+                className="segments-editor-body"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <PalettesPanel
+                  palettes={palettes}
+                  currentColors={currentColors}
+                  onApplyPalette={handleApplyPalette}
+                  onSavePalette={handleSavePalette}
+                  onDeletePalette={deletePalette}
+                />
 
-          <SegmentTable
-            segments={segments}
-            onUpdateWeight={handleUpdateWeight}
-            onUpdatePercentage={handleUpdatePercentage}
-            onUpdateLabel={handleUpdateLabel}
-            onUpdateColor={handleUpdateColor}
-            onAddSegment={handleAddSegment}
-            onRemoveSegment={handleRemoveSegment}
-            onReorderSegments={handleReorderSegments}
-            onResetWeights={handleResetWeights}
-          />
+                <SegmentTable
+                  segments={segments}
+                  onUpdateWeight={handleUpdateWeight}
+                  onUpdatePercentage={handleUpdatePercentage}
+                  onUpdateLabel={handleUpdateLabel}
+                  onUpdateColor={handleUpdateColor}
+                  onAddSegment={handleAddSegment}
+                  onRemoveSegment={handleRemoveSegment}
+                  onReorderSegments={handleReorderSegments}
+                  onResetWeights={handleResetWeights}
+                />
 
-          <div className="table-footer">
-            <span>
-              Total Weight Sum: <strong>{totalWeight}</strong>
-            </span>
-            <span>
-              Total %: <strong>100.0%</strong>
-            </span>
-          </div>
+                <div className="table-footer">
+                  <span>
+                    Total Weight Sum: <strong>{totalWeight}</strong>
+                  </span>
+                  <span>
+                    Total %: <strong>100.0%</strong>
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!isSegmentsEditorVisible && (
+            <button
+              className="segments-restore-btn"
+              onClick={toggleSegmentsEditor}
+              aria-label="Show segments editor"
+            >
+              <Eye size={18} />
+              Show Editor
+            </button>
+          )}
         </div>
       </main>
 

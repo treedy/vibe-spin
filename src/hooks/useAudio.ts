@@ -11,6 +11,7 @@ type StoredSettings = {
   soundsEnabled?: boolean;
   celebrationEnabled?: boolean;
   spinDurationMs?: number | null;
+  isSegmentsEditorVisible?: boolean;
 };
 
 const DEBOUNCE_MS: Record<SoundType, number> = {
@@ -92,6 +93,14 @@ function saveSpinDurationMs(value: number | null): void {
   });
 }
 
+function loadSegmentsEditorVisible(): boolean {
+  return readSettings().isSegmentsEditorVisible !== false;
+}
+
+function saveSegmentsEditorVisible(value: boolean): void {
+  saveSettingsPatch({ isSegmentsEditorVisible: value });
+}
+
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== 'undefined' &&
@@ -140,6 +149,8 @@ export function useAudio() {
   const [spinDurationMs, setSpinDurationMs] = useState<number | null>(
     loadSpinDurationMs
   );
+  const [isSegmentsEditorVisible, setIsSegmentsEditorVisible] =
+    useState<boolean>(loadSegmentsEditorVisible);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const lastPlayRef = useRef<Partial<Record<SoundType, number>>>({});
 
@@ -209,6 +220,14 @@ export function useAudio() {
     });
   }, []);
 
+  const toggleSegmentsEditor = useCallback((): void => {
+    setIsSegmentsEditorVisible((prev) => {
+      const next = !prev;
+      saveSegmentsEditorVisible(next);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       audioCtxRef.current?.close().catch(() => undefined);
@@ -222,6 +241,8 @@ export function useAudio() {
     toggleCelebration,
     spinDurationMs,
     updateSpinDurationMs,
+    isSegmentsEditorVisible,
+    toggleSegmentsEditor,
     play,
   };
 }
