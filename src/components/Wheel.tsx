@@ -1,6 +1,23 @@
-import React, { useMemo } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+} from 'react';
 import { motion } from 'framer-motion';
 import type { Segment } from '../hooks/useSegments';
+
+interface WheelSegmentTooltipState {
+  hoveredSegmentId: string | null;
+  tooltipSegmentId: string | null;
+  hoverTimerId: number | null;
+  pressTimerId: number | null;
+}
+
+const HOVER_DELAY_MS = 500;
+const LONG_PRESS_DELAY_MS = 500;
+const LONG_PRESS_MOVE_THRESHOLD = 8;
 
 interface WheelProps {
   segments: Segment[];
@@ -47,6 +64,126 @@ export const Wheel: React.FC<WheelProps> = React.memo(
     onSpin,
     disabled,
   }) => {
+    // Tooltip state
+    const tooltipStateRef = useRef<WheelSegmentTooltipState>({
+      hoveredSegmentId: null,
+      tooltipSegmentId: null,
+      hoverTimerId: null,
+      pressTimerId: null,
+    });
+    const pressStartPosRef = useRef<{ x: number; y: number } | null>(null);
+    const [tooltipSegmentId, setTooltipSegmentId] = useState<string | null>(
+      null
+    );
+    const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({
+      x: 0,
+      y: 0,
+    });
+
+    const clearHoverTimer = useCallback(() => {
+      if (tooltipStateRef.current.hoverTimerId !== null) {
+        clearTimeout(tooltipStateRef.current.hoverTimerId);
+        tooltipStateRef.current.hoverTimerId = null;
+      }
+    }, []);
+
+    const clearPressTimer = useCallback(() => {
+      if (tooltipStateRef.current.pressTimerId !== null) {
+        clearTimeout(tooltipStateRef.current.pressTimerId);
+        tooltipStateRef.current.pressTimerId = null;
+      }
+    }, []);
+
+    const hideTooltip = useCallback(() => {
+      clearHoverTimer();
+      clearPressTimer();
+      tooltipStateRef.current.hoveredSegmentId = null;
+      tooltipStateRef.current.tooltipSegmentId = null;
+      pressStartPosRef.current = null;
+      setTooltipSegmentId(null);
+    }, [clearHoverTimer, clearPressTimer]);
+
+    const handleSegmentMouseEnter = useCallback(
+      (segmentId: string, e: React.MouseEvent) => {
+        if (isSpinning) return;
+        clearHoverTimer();
+        tooltipStateRef.current.hoveredSegmentId = segmentId;
+        const { clientX, clientY } = e;
+        tooltipStateRef.current.hoverTimerId = window.setTimeout(() => {
+          if (tooltipStateRef.current.hoveredSegmentId === segmentId) {
+            tooltipStateRef.current.tooltipSegmentId = segmentId;
+            setTooltipPos({ x: clientX, y: clientY });
+            setTooltipSegmentId(segmentId);
+          }
+        }, HOVER_DELAY_MS);
+      },
+      [isSpinning, clearHoverTimer]
+    );
+
+    const handleSegmentMouseLeave = useCallback(() => {
+      hideTooltip();
+    }, [hideTooltip]);
+
+    const handleSegmentPointerDown = useCallback(
+      (segmentId: string, e: React.PointerEvent) => {
+        if (isSpinning || e.pointerType !== 'touch') return;
+        clearPressTimer();
+        tooltipStateRef.current.hoveredSegmentId = segmentId;
+        pressStartPosRef.current = { x: e.clientX, y: e.clientY };
+        const { clientX, clientY } = e;
+        tooltipStateRef.current.pressTimerId = window.setTimeout(() => {
+          if (tooltipStateRef.current.hoveredSegmentId === segmentId) {
+            tooltipStateRef.current.tooltipSegmentId = segmentId;
+            setTooltipPos({ x: clientX, y: clientY });
+            setTooltipSegmentId(segmentId);
+          }
+        }, LONG_PRESS_DELAY_MS);
+      },
+      [isSpinning, clearPressTimer]
+    );
+
+    const handleSegmentPointerMove = useCallback(
+      (e: React.PointerEvent) => {
+        if (e.pointerType !== 'touch' || !pressStartPosRef.current) return;
+        const dx = e.clientX - pressStartPosRef.current.x;
+        const dy = e.clientY - pressStartPosRef.current.y;
+        if (Math.sqrt(dx * dx + dy * dy) > LONG_PRESS_MOVE_THRESHOLD) {
+          clearPressTimer();
+          tooltipStateRef.current.hoveredSegmentId = null;
+          pressStartPosRef.current = null;
+          setTooltipSegmentId(null);
+        }
+      },
+      [clearPressTimer]
+    );
+
+    const handleSegmentPointerUp = useCallback(() => {
+      clearPressTimer();
+      pressStartPosRef.current = null;
+      tooltipStateRef.current.hoveredSegmentId = null;
+      tooltipStateRef.current.tooltipSegmentId = null;
+      setTooltipSegmentId(null);
+    }, [clearPressTimer]);
+
+    // Clear tooltip whenever spinning starts
+    useEffect(() => {
+      if (isSpinning) {
+        hideTooltip();
+      }
+    }, [isSpinning, hideTooltip]);
+
+    // Clean up timers on unmount
+    useEffect(() => {
+      return () => {
+        clearHoverTimer();
+        clearPressTimer();
+      };
+    }, [clearHoverTimer, clearPressTimer]);
+
+    const tooltipLabel = tooltipSegmentId
+      ? (segments.find((s) => s.id === tooltipSegmentId)?.label ?? null)
+      : null;
+
     const slices = useMemo(() => {
       let currentAngle = 0;
       return segments.map((segment) => {
@@ -167,6 +304,13 @@ export const Wheel: React.FC<WheelProps> = React.memo(
                 fill={slice.color}
                 stroke="rgba(255,255,255,0.1)"
                 strokeWidth="0.5"
+                data-segment-id={slice.id}
+                onMouseEnter={(e) => handleSegmentMouseEnter(slice.id, e)}
+                onMouseLeave={handleSegmentMouseLeave}
+                onPointerDown={(e) => handleSegmentPointerDown(slice.id, e)}
+                onPointerMove={handleSegmentPointerMove}
+                onPointerUp={handleSegmentPointerUp}
+                onPointerCancel={handleSegmentPointerUp}
               />
             ))}
             {slices.map((slice) =>
@@ -207,6 +351,20 @@ export const Wheel: React.FC<WheelProps> = React.memo(
             {isSpinning ? '...' : 'SPIN'}
           </span>
         </button>
+
+        {/* Segment Tooltip */}
+        {tooltipLabel && (
+          <div
+            className="wheel-segment-tooltip"
+            role="tooltip"
+            style={{
+              left: `${tooltipPos.x}px`,
+              top: `${tooltipPos.y}px`,
+            }}
+          >
+            {tooltipLabel}
+          </div>
+        )}
       </div>
     );
   }
