@@ -22,7 +22,15 @@ import { encodeWheel, decodeWheel } from './utils/permalink';
 import { DEFAULT_SPIN_DURATION_MS, useAudio } from './hooks/useAudio';
 import { useCelebration } from './hooks/useCelebration';
 import { Celebration } from './components/Celebration';
-import { Share2, Settings, User, Menu, X } from 'lucide-react';
+import {
+  Share2,
+  Settings,
+  User,
+  Menu,
+  X,
+  PanelRightClose,
+  PanelRightOpen,
+} from 'lucide-react';
 
 const RESET_TOAST_DURATION = 5000;
 const COPIED_TOAST_DURATION = 2000;
@@ -111,6 +119,7 @@ export default function App() {
   const [termsOpen, setTermsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSegmentsEditorVisible, setIsSegmentsEditorVisible] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
@@ -544,9 +553,25 @@ export default function App() {
       </div>
 
       {/* Main Content */}
-      <main>
+      <main className={isSegmentsEditorVisible ? undefined : 'segments-hidden'}>
         {/* Wheel Card */}
         <div className="wheel-card">
+          <button
+            className="toggle-segments-btn"
+            onClick={() => setIsSegmentsEditorVisible((v) => !v)}
+            aria-label={
+              isSegmentsEditorVisible
+                ? 'Hide segments editor'
+                : 'Show segments editor'
+            }
+            title={isSegmentsEditorVisible ? 'Hide editor' : 'Show editor'}
+          >
+            {isSegmentsEditorVisible ? (
+              <PanelRightClose size={18} />
+            ) : (
+              <PanelRightOpen size={18} />
+            )}
+          </button>
           <div className="wheel-container">
             <Wheel
               segments={segments}
@@ -579,80 +604,92 @@ export default function App() {
               🎉 Winner: {winner}
             </div>
           ) : null}
+          {!isSegmentsEditorVisible && (
+            <button
+              className="show-editor-btn"
+              onClick={() => setIsSegmentsEditorVisible(true)}
+              aria-label="Show segments editor"
+            >
+              <PanelRightOpen size={16} />
+              Show Editor
+            </button>
+          )}
         </div>
 
         {/* Segments Panel */}
-        <div className="segments-panel">
-          <div className="segments-header">
-            <div className="segments-title-row">
-              {isEditingName ? (
-                <input
-                  className="wheel-name-input"
-                  value={editNameValue}
-                  onChange={(e) => setEditNameValue(e.target.value)}
-                  onBlur={() => {
-                    const name = editNameValue.trim() || activeWheel.name;
-                    renameWheel(activeId, name);
-                    setIsEditingName(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+        {isSegmentsEditorVisible && (
+          <div className="segments-panel">
+            <div className="segments-header">
+              <div className="segments-title-row">
+                {isEditingName ? (
+                  <input
+                    className="wheel-name-input"
+                    value={editNameValue}
+                    onChange={(e) => setEditNameValue(e.target.value)}
+                    onBlur={() => {
                       const name = editNameValue.trim() || activeWheel.name;
                       renameWheel(activeId, name);
                       setIsEditingName(false);
-                    }
-                    if (e.key === 'Escape') setIsEditingName(false);
-                  }}
-                  autoFocus
-                />
-              ) : (
-                <span
-                  className="wheel-name-display"
-                  onClick={() => {
-                    setEditNameValue(activeWheel.name);
-                    setIsEditingName(true);
-                  }}
-                  title="Click to rename"
-                >
-                  {activeWheel.name}
-                </span>
-              )}
-              <h2 className="segments-title">Segments</h2>
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const name = editNameValue.trim() || activeWheel.name;
+                        renameWheel(activeId, name);
+                        setIsEditingName(false);
+                      }
+                      if (e.key === 'Escape') setIsEditingName(false);
+                    }}
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className="wheel-name-display"
+                    onClick={() => {
+                      setEditNameValue(activeWheel.name);
+                      setIsEditingName(true);
+                    }}
+                    title="Click to rename"
+                  >
+                    {activeWheel.name}
+                  </span>
+                )}
+                <h2 className="segments-title">Segments</h2>
+              </div>
+              <p className="segments-subtitle">
+                Manage labels, colors and weights
+              </p>
             </div>
-            <p className="segments-subtitle">
-              Manage labels, colors and weights
-            </p>
+
+            <PalettesPanel
+              palettes={palettes}
+              currentColors={currentColors}
+              onApplyPalette={handleApplyPalette}
+              onSavePalette={handleSavePalette}
+              onDeletePalette={deletePalette}
+            />
+
+            <SegmentTable
+              segments={segments}
+              onUpdateWeight={handleUpdateWeight}
+              onUpdatePercentage={handleUpdatePercentage}
+              onUpdateLabel={handleUpdateLabel}
+              onUpdateColor={handleUpdateColor}
+              onAddSegment={handleAddSegment}
+              onRemoveSegment={handleRemoveSegment}
+              onReorderSegments={handleReorderSegments}
+              onResetWeights={handleResetWeights}
+            />
+
+            <div className="table-footer">
+              <span>
+                Total Weight Sum: <strong>{totalWeight}</strong>
+              </span>
+              <span>
+                Total %: <strong>100.0%</strong>
+              </span>
+            </div>
           </div>
-
-          <PalettesPanel
-            palettes={palettes}
-            currentColors={currentColors}
-            onApplyPalette={handleApplyPalette}
-            onSavePalette={handleSavePalette}
-            onDeletePalette={deletePalette}
-          />
-
-          <SegmentTable
-            segments={segments}
-            onUpdateWeight={handleUpdateWeight}
-            onUpdatePercentage={handleUpdatePercentage}
-            onUpdateLabel={handleUpdateLabel}
-            onUpdateColor={handleUpdateColor}
-            onAddSegment={handleAddSegment}
-            onRemoveSegment={handleRemoveSegment}
-            onReorderSegments={handleReorderSegments}
-            onResetWeights={handleResetWeights}
-          />
-
-          <div className="table-footer">
-            <span>
-              Total Weight Sum: <strong>{totalWeight}</strong>
-            </span>
-            <span>
-              Total %: <strong>100.0%</strong>
-            </span>
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Recent Spins */}

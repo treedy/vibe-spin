@@ -276,6 +276,13 @@ main {
   flex: 1;
 }
 
+main.segments-hidden {
+  grid-template-columns: 1fr;
+  max-width: 700px;
+  margin-inline: auto;
+  width: 100%;
+}
+
 /* Wheel Card */
 .wheel-card {
   background: var(--card-dark);
@@ -286,6 +293,73 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
+  position: relative;
+}
+
+/* Toggle segments editor button (top-right of wheel-card) */
+.toggle-segments-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: rgba(37, 123, 244, 0.1);
+  border: 1px solid rgba(37, 123, 244, 0.25);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.toggle-segments-btn:hover {
+  background: rgba(37, 123, 244, 0.2);
+  border-color: rgba(37, 123, 244, 0.5);
+  color: var(--text-primary);
+}
+
+.toggle-segments-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Prominent "Show Editor" button rendered inside wheel-card when panel is hidden */
+.show-editor-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  background: var(--primary);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  box-shadow: 0 0 18px rgba(37, 123, 244, 0.45);
+  transition:
+    opacity 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.show-editor-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 26px rgba(37, 123, 244, 0.65);
+  transform: translateY(-1px);
+}
+
+.show-editor-btn:focus-visible {
+  outline: 2px solid var(--accent-neon);
+  outline-offset: 3px;
 }
 
 .wheel-container {
