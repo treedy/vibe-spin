@@ -23,17 +23,17 @@ Vibe Spin is an interactive, browser-based spinning wheel app built for fun and 
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | React 19 + TypeScript |
-| Build tool | Vite 7 |
-| Animations | Framer Motion 12 |
-| Icons | Lucide React |
-| Unit tests | Vitest 4 |
-| E2E tests | Playwright |
-| Linter | ESLint 9 + TypeScript ESLint |
-| Formatter | Prettier |
-| Package manager | pnpm 10 |
+| Layer           | Technology                   |
+| --------------- | ---------------------------- |
+| Framework       | React 19 + TypeScript        |
+| Build tool      | Vite 7                       |
+| Animations      | Framer Motion 12             |
+| Icons           | Lucide React                 |
+| Unit tests      | Vitest 4                     |
+| E2E tests       | Playwright                   |
+| Linter          | ESLint 9 + TypeScript ESLint |
+| Formatter       | Prettier                     |
+| Package manager | pnpm 10                      |
 
 ---
 
@@ -102,6 +102,35 @@ pnpm test:e2e
 
 Runs the full Playwright suite from `tests/`.
 
+### Visual regression tests (Playwright screenshots)
+
+`tests/visual.spec.ts` captures baseline screenshots of four main UI states and
+compares them on every subsequent run to catch visual regressions:
+
+| Test                                  | Description                          |
+| ------------------------------------- | ------------------------------------ |
+| `idle wheel`                          | Full page – no spin performed yet    |
+| `palettes panel open`                 | Palettes dropdown expanded           |
+| `history drawer`                      | History side-drawer open             |
+| `after spin – winner overlay visible` | Winner banner displayed after a spin |
+
+Baseline PNG files are committed in
+`tests/__screenshots__/visual.spec.ts-snapshots/` and are tagged with the
+browser and OS (e.g. `idle-wheel-chromium-linux.png`).
+
+#### Regenerating baselines
+
+Run the following command whenever you make intentional UI changes and need to
+update the stored reference images:
+
+```bash
+# Regenerate baselines for the default Chromium project
+pnpm test:e2e --update-snapshots --project=chromium
+```
+
+> **Tip:** After updating baselines, review the diff in your PR to confirm only
+> expected pixels changed, then commit the updated PNG files.
+
 ### Run all tests
 
 ```bash
@@ -158,6 +187,9 @@ vibe-spin/
 │   ├── App.tsx                 # Root component and orchestration
 │   └── styles.css              # Global CSS (neon-cyberpunk theme)
 ├── tests/                      # Playwright e2e test specs
+│   ├── vibe-spin.spec.ts       # General e2e tests
+│   ├── visual.spec.ts          # Visual regression screenshot tests
+│   └── __screenshots__/        # Committed baseline PNG files
 ├── index.html                  # Vite HTML entry point
 ├── vite.config.ts
 ├── playwright.config.ts

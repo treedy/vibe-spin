@@ -30,7 +30,13 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Fixed viewport for deterministic screenshot comparisons */
+    viewport: { width: 1280, height: 800 },
   },
+
+  /* Where to store screenshot baselines */
+  snapshotDir: 'tests/__screenshots__',
 
   /* Configure projects for major browsers */
   projects: [
@@ -72,7 +78,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm run dev --port 7357',
+    command: 'npx vite --port 7357',
     url: 'http://localhost:7357',
     reuseExistingServer: !process.env.CI,
   },
