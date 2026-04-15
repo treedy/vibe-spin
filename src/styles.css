@@ -950,6 +950,22 @@ main {
   color: var(--text-primary);
 }
 
+.footer-version {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  letter-spacing: 0.3px;
+}
+
+/* Settings version badge */
+.settings-version {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  letter-spacing: 0.3px;
+  margin-right: auto;
+}
+
 /* App Modal */
 .app-modal-backdrop {
   position: fixed;

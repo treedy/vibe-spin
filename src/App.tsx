@@ -20,6 +20,7 @@ import { PalettesPanel } from './components/PalettesPanel';
 import { formatRelativeTime } from './utils/timeFormat';
 import { encodeWheel, decodeWheel } from './utils/permalink';
 import { DEFAULT_SPIN_DURATION_MS, useAudio } from './hooks/useAudio';
+import { APP_VERSION_METADATA } from './version';
 import { useCelebration } from './hooks/useCelebration';
 import { Celebration } from './components/Celebration';
 import { Share2, Settings, User, Menu, X } from 'lucide-react';
@@ -804,6 +805,9 @@ export default function App() {
             Feedback
           </a>
         </div>
+        <span className="footer-version">
+          v{APP_VERSION_METADATA.appVersion}
+        </span>
       </footer>
 
       <Celebration isCelebrating={isCelebrating} />

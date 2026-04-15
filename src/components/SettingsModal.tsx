@@ -6,6 +6,7 @@ import {
   MAX_CUSTOM_SPIN_DURATION_MS,
   MIN_CUSTOM_SPIN_DURATION_MS,
 } from '../hooks/useAudio';
+import { APP_VERSION_METADATA } from '../version';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -296,6 +297,9 @@ export function SettingsModal({
         </div>
       </div>
       <div className="privacy-modal-actions">
+        <span className="settings-version">
+          v{APP_VERSION_METADATA.appVersion}
+        </span>
         <button className="header-btn" onClick={onClose}>
           Close
         </button>
