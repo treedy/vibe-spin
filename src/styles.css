@@ -331,6 +331,7 @@ main.segments-hidden {
 
 /* Prominent "Show Editor" button rendered inside wheel-card when panel is hidden */
 .show-editor-btn {
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: 0.5rem;
